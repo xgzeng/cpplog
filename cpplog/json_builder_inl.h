@@ -101,9 +101,49 @@ CPPLOG_INLINE JsonBuilder& JsonBuilder::WriteNull() {
   return EndValue();
 }
 
+CPPLOG_INLINE char hexify(const char c) {
+  return (c < 10) ? ('0' + c) : ('a' + (c - 10));
+}
+
+CPPLOG_INLINE void escaped_output(std::ostream& os, const std::string& s) {
+  for (const auto& c: s) {
+    switch (c) {
+    case '"':
+      os << '\\' << '"';
+      break;
+    case '\\':
+      os << '\\' << '\\';
+      break;
+    case '\b':
+      os << '\\' << 'b';
+      break;
+    case '\f':
+      os << '\\' << 'f';
+      break;
+    case '\n':
+      os << '\\' << 'n';
+      break;
+    case '\r':
+      os << '\\' << 'r';
+      break;
+    case '\t':
+      os << '\\' << 't';
+      break;
+    default:
+      if (c >= 0x00 && c <= 0x1f) {
+        os << "\\u00" << hexify(c >> 4) << hexify(c & 0x0F);
+      } else {
+        os << c;
+      }
+    }
+  }
+}
+
 CPPLOG_INLINE JsonBuilder& JsonBuilder::WriteString(const std::string& value) {
   BeginValue();
-  stream_ << '"' << value << '"';
+  stream_ << '"';
+  escaped_output(stream_, value);
+  stream_ << '"';
   return EndValue();
 }
 
@@ -114,8 +154,9 @@ CPPLOG_INLINE JsonBuilder& JsonBuilder::WriteName(const std::string& value) {
   case EXPECT_MORE_PROPERTY_NAME:
     stream_ << ",";   // continue to next case is intented
   case EXPECT_FIRST_PROPERTY_NAME:
-    // TODO: escape string value
-    stream_ << '"' << value << "\":";
+    stream_ << '"';
+    escaped_output(stream_, value);
+    stream_ << '"' << ':';
     state_stack_.top() = EXPECT_PROPERTY_VALUE;
     break;
   default:

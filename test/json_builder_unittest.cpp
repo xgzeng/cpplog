@@ -20,6 +20,12 @@ TEST_CASE("JsonBuilder build simple value") {
   REQUIRE(js.WriteString("hello").ExtractString() == "\"hello\"");
 }
 
+TEST_CASE("JsonBuild escape string") {
+  JsonBuilder js;
+
+  REQUIRE(js.WriteString("hello\n").ExtractString() == "\"hello\\n\"");
+}
+
 TEST_CASE("JsonBuilder overloaded write value") {
   JsonBuilder js;
   unsigned int ui = 1;
