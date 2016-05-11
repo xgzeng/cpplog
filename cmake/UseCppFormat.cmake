@@ -6,7 +6,7 @@ if(NOT CppFormat_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cppfo
   message("No cppformat found in system, try to use embedded cppformat")
   add_subdirectory("third_party/cppformat")
   set(CPPFORMAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/cppformat")
-  set(CPPFORMAT_LIBRARY cppformat)
+  set(CPPFORMAT_LIBRARY fmt)
   set(CppFormat_FOUND TRUE)
 endif()
 

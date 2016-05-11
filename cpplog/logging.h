@@ -1,7 +1,8 @@
 #pragma once
 
 #include <sstream>
-#include <cppformat/format.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <experimental/string_view>
 #include "config.h"
 #include "cpplog/json_builder.h"
