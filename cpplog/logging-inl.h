@@ -29,69 +29,60 @@ CPPLOG_INLINE const std::string& LogRecord::field(string_view name) {
   throw std::runtime_error("no such field");
 }
 
-class CompositeSink : public LogSink {
-public:
-  CompositeSink() {}
-
-  void SubmitRecord(LogRecord& r) override {
-    for (auto s : sinks_) {
-      s->SubmitRecord(r);
-    }
+CPPLOG_INLINE void LogDispatcher::SubmitRecord(LogRecord& r) {
+  for (auto s : sinks_) {
+    s->SubmitRecord(r);
   }
+}
 
-  void AddLogSink(LogSink* sink) {
-    sinks_.push_back(sink);
-  }
+CPPLOG_INLINE void LogDispatcher::AddLogSink(LogSink* sink) {
+  sinks_.push_back(sink);
+}
 
-  void RemoveLogSink(LogSink* sink) {
-    sinks_.erase(std::remove(sinks_.begin(), sinks_.end(), sink),
-                 sinks_.end());
-  }
+CPPLOG_INLINE void LogDispatcher::RemoveLogSink(LogSink* sink) {
+  sinks_.erase(std::remove(sinks_.begin(), sinks_.end(), sink),
+               sinks_.end());
+}
 
-  bool HasLogSink(LogSink* sink) {
-    return std::find(sinks_.begin(), sinks_.end(), sink) != sinks_.end();
-  }
-
-private:
-  std::vector<LogSink*> sinks_;
-};
+CPPLOG_INLINE bool LogDispatcher::HasLogSink(LogSink* sink) {
+  return std::find(sinks_.begin(), sinks_.end(), sink) != sinks_.end();
+}
 
 CPPLOG_INLINE ConsoleSink* console_sink() {
   static ConsoleSink console_sink;
   return &console_sink;
 }
 
-CPPLOG_INLINE CompositeSink* GlobalSink() {
-  static CompositeSink composite_sink;
+CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
+  static LogDispatcher global_instance;
   static std::once_flag once;
   std::call_once(once, [&](){
-    composite_sink.AddLogSink(console_sink());
+    global_instance.AddLogSink(console_sink());
   });
 
-  return &composite_sink;
+  return global_instance;
 };
 
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
-  if (!GlobalSink()->HasLogSink(sink)) {
-    GlobalSink()->AddLogSink(sink);
+  if (!LogDispatcher::instance().HasLogSink(sink)) {
+      LogDispatcher::instance().AddLogSink(sink);
   }
 }
 
 CPPLOG_INLINE void SetLogToConsole(bool enable) {
-  auto gs = GlobalSink();
   if (enable) {
-    if (!gs->HasLogSink(console_sink())) {
-      gs->AddLogSink(console_sink());
+    if (!LogDispatcher::instance().HasLogSink(console_sink())) {
+        LogDispatcher::instance().AddLogSink(console_sink());
     }
   } else {
-    gs->RemoveLogSink(console_sink());
+    LogDispatcher::instance().RemoveLogSink(console_sink());
   }
 }
 
 // LogCapturer
 CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const char* filename,
                                      int line, const char* func)
-: sink_(*GlobalSink()), record_(level, filename, func, line) {
+: sink_(LogDispatcher::instance()), record_(level, filename, func, line) {
 }
 
 CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,

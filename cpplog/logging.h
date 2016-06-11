@@ -97,6 +97,22 @@ protected:
   ~LogSink() = default;
 };
 
+class LogDispatcher : public LogSink {
+public:
+  static LogDispatcher& instance();
+
+  void SubmitRecord(LogRecord& r) override;
+
+  void AddLogSink(LogSink* sink);
+
+  void RemoveLogSink(LogSink* sink);
+
+  bool HasLogSink(LogSink* sink);
+
+private:
+  std::vector<LogSink*> sinks_;
+};
+
 class LogCapture {
 public:
   LogCapture(LogLevel level, const char* filename,
