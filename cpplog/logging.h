@@ -101,7 +101,11 @@ class LogDispatcher : public LogSink {
 public:
   static LogDispatcher& instance();
 
-  void SubmitRecord(LogRecord& r) override;
+  bool IsLevelEnabled(LogLevel level) const;
+
+  void EnableLevelAbove(LogLevel level);
+
+  void SubmitRecord(LogRecord& record) override;
 
   void AddLogSink(LogSink* sink);
 
@@ -110,6 +114,7 @@ public:
   bool HasLogSink(LogSink* sink);
 
 private:
+  LogLevel level_limit_ = LogLevel::info;
   std::vector<LogSink*> sinks_;
 };
 
@@ -170,9 +175,10 @@ constexpr cpplog::LogLevel ERROR = cpplog::LogLevel::error;
 constexpr cpplog::LogLevel FATAL = cpplog::LogLevel::fatal;
 
 #define LOG(level, fmt, ...) \
-    cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
+    if (LogDispatcher::instance().IsLevelEnabled(level)) \
+        cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
 
 #define LOG_IF(level, condition, fmt, ...) \
-  if (condition)                        \
-    cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
+    if (condition && LogDispatcher::instance().IsLevelEnabled(level))      \
+        cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
 

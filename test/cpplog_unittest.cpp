@@ -10,6 +10,10 @@ struct TestSink : public LogSink, public LogRecord {
   void SubmitRecord(LogRecord& record) override {
     (LogRecord&)(*this) = record;
   }
+
+  void reset() {
+      (LogRecord&)(*this) = LogRecord();
+  }
 } log_result;
 
 struct StreamableObject {
@@ -63,9 +67,22 @@ TEST_CASE("LogCapture json properties") {
 }
 
 TEST_CASE("logging macros") {
-  SetLogToConsole(false);
-  AddLogSink(&log_result);
-  LOG(INFO, "hello, macros");
-  REQUIRE(log_result.message() == "hello, macros");
+    SetLogToConsole(false);
+    AddLogSink(&log_result);
+
+    log_result.reset();
+    REQUIRE(log_result.message() == "");
+
+    SECTION("Use Macro To Log") {
+        LOG(INFO, "hello, macros");
+        REQUIRE(log_result.message() == "hello, macros");
+    }
+
+    SECTION("Log With Level filtering") {
+        LogDispatcher::instance().EnableLevelAbove(LogLevel::error);
+        LOG(INFO, "hello, info level");
+        REQUIRE(log_result.message() == "");
+   }
 }
+
 

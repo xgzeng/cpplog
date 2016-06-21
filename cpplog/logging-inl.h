@@ -29,6 +29,14 @@ CPPLOG_INLINE const std::string& LogRecord::field(string_view name) {
   throw std::runtime_error("no such field");
 }
 
+CPPLOG_INLINE bool LogDispatcher::IsLevelEnabled(LogLevel level) const {
+    return level >= level_limit_;
+}
+
+CPPLOG_INLINE void LogDispatcher::EnableLevelAbove(LogLevel level) {
+    level_limit_ = level;
+}
+
 CPPLOG_INLINE void LogDispatcher::SubmitRecord(LogRecord& r) {
   for (auto s : sinks_) {
     s->SubmitRecord(r);
