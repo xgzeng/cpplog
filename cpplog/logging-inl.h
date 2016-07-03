@@ -1,6 +1,7 @@
 #pragma once
 #include <cpplog/config.h>
 #include <mutex>
+#include <sys/time.h>
 #include "console_sink.h"
 
 namespace cpplog {
