@@ -175,10 +175,10 @@ constexpr cpplog::LogLevel ERROR = cpplog::LogLevel::error;
 constexpr cpplog::LogLevel FATAL = cpplog::LogLevel::fatal;
 
 #define LOG(level, fmt, ...) \
-    if (LogDispatcher::instance().IsLevelEnabled(level)) \
+    if (cpplog::LogDispatcher::instance().IsLevelEnabled(level)) \
         cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
 
 #define LOG_IF(level, condition, fmt, ...) \
-    if (condition && LogDispatcher::instance().IsLevelEnabled(level))      \
+    if (condition && cpplog::LogDispatcher::instance().IsLevelEnabled(level))      \
         cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
 
