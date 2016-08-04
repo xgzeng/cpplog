@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(cpplog)
 
 set(CMAKE_MODULE_PATH
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake-modules")
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake-modules" ${CMAKE_MODULE_PATH})
 
 set(CMAKE_CXX_STANDARD "14")
 
