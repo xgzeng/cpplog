@@ -1,0 +1,7 @@
+[requires]
+fmt/3.0.0@memsharded/testing
+nlJson/2.0.1@arnemertz/testing
+
+[generators]
+cmake
+

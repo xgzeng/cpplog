@@ -1,9 +1,0 @@
-[submodule "third_party/cppformat"]
-	path = third_party/cppformat
-	url = https://github.com/cppformat/cppformat.git
-[submodule "third_party/nlohmann_json"]
-	path = third_party/nlohmann_json
-	url = https://github.com/nlohmann/json.git
-[submodule "cmake/cmake-modules"]
-	path = cmake/cmake-modules
-	url = https://github.com/xgzeng/cmake-modules.git
