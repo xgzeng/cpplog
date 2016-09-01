@@ -10,7 +10,7 @@ endif()
 
 add_executable(cpplog_unittest ${UNITTEST_SRCS})
 
-target_link_libraries(cpplog_unittest ${CPPFORMAT_LIBRARIES})
+target_link_libraries(cpplog_unittest fmt)
 
 add_test(cpplog_unittest cpplog_unittest)
 
