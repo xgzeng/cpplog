@@ -4,7 +4,7 @@
 //
 namespace cpplog {
 
-constexpr char LevelLetter(LogLevel l) {
+CPPLOG_INLINE char LevelLetter(LogLevel l) {
   switch (l) {
   case LogLevel::trace: return 'T';
   case LogLevel::debug: return 'D';

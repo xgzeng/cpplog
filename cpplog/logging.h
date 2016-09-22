@@ -3,13 +3,10 @@
 #include <sstream>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <experimental/string_view>
 #include "config.h"
 #include "cpplog/json_builder.h"
 
 namespace cpplog {
-
-using std::experimental::string_view;
 
 enum class LogLevel {
   trace,
@@ -64,11 +61,11 @@ public:
 
   typedef std::pair<std::string, std::string> name_json_pair;
 
-  void add_field(string_view name, std::string value) {
-    fields_.emplace_back(name.to_string(), std::move(value));
+  void add_field(const std::string& name, std::string value) {
+    fields_.emplace_back(name, std::move(value));
   }
 
-  const std::string& field(string_view name);
+  const std::string& field(const std::string& name);
 
   std::vector<name_json_pair>& fields() {
     return fields_;
@@ -101,7 +98,7 @@ class LogDispatcher : public LogSink {
 public:
   static LogDispatcher& instance();
 
-  bool IsLevelEnabled(LogLevel level) const;
+  bool IsEnabled(LogLevel level) const;
 
   void EnableLevelAbove(LogLevel level);
 
@@ -145,7 +142,7 @@ public:
 
   // capture log record properties
   template<typename T>
-  LogCapture& operator()(string_view name, T&& value) {
+  LogCapture& operator()(const std::string& name, T&& value) {
     JsonBuilder jb;
     dump(jb, std::forward<T>(value));
     record_.add_field(name, jb.ExtractString());
@@ -168,17 +165,19 @@ CPPLOG_INLINE void SetLogToConsole(bool enable);
 #include "logging-inl.h"
 
 /// macros
-constexpr cpplog::LogLevel DEBUG = cpplog::LogLevel::debug;
-constexpr cpplog::LogLevel INFO = cpplog::LogLevel::info;
-constexpr cpplog::LogLevel WARNING = cpplog::LogLevel::warning;
-constexpr cpplog::LogLevel ERROR = cpplog::LogLevel::error;
-constexpr cpplog::LogLevel FATAL = cpplog::LogLevel::fatal;
+constexpr cpplog::LogLevel LVL_DEBUG = cpplog::LogLevel::debug;
+constexpr cpplog::LogLevel LVL_INFO = cpplog::LogLevel::info;
+constexpr cpplog::LogLevel LVL_WARNING = cpplog::LogLevel::warning;
+constexpr cpplog::LogLevel LVL_ERROR = cpplog::LogLevel::error;
+constexpr cpplog::LogLevel LVL_FATAL = cpplog::LogLevel::fatal;
 
 #define LOG(level, fmt, ...) \
-    if (cpplog::LogDispatcher::instance().IsLevelEnabled(level)) \
-        cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
+    if (cpplog::LogDispatcher::instance().IsEnabled(LVL_##level)) \
+        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
+           .message(fmt, ##__VA_ARGS__)
 
 #define LOG_IF(level, condition, fmt, ...) \
-    if (condition && cpplog::LogDispatcher::instance().IsLevelEnabled(level))      \
-        cpplog::LogCapture(level, __FILE__, __LINE__, __func__).message(fmt, ##__VA_ARGS__)
+    if (condition && cpplog::LogDispatcher::instance().IsEnabled(LVL_##level))  \    \
+        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
+			.message(fmt, ##__VA_ARGS__)
 

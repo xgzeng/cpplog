@@ -1,7 +1,11 @@
 #pragma once
 #include <cpplog/config.h>
 #include <mutex>
+#ifdef _WINDOWS
+#else
 #include <sys/time.h>
+#endif
+
 #include "console_sink.h"
 
 namespace cpplog {
@@ -12,16 +16,18 @@ CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
                             int line)
 : level_(level), file_name_(filename), func_(func), line_(line),
   timestamp_{0, 0} {
-
+#ifdef _WINDOWS
+	timespec_get(&timestamp_, TIME_UTC);
+#else
   struct timeval tv;
   if (0 == gettimeofday(&tv, nullptr)) {
     timestamp_.tv_sec = tv.tv_sec;
     timestamp_.tv_nsec = tv.tv_usec * 1000;
   }
-//  clock_gettime(CLOCK_REALTIME, &timestamp_);
+#endif
 }
 
-CPPLOG_INLINE const std::string& LogRecord::field(string_view name) {
+CPPLOG_INLINE const std::string& LogRecord::field(const std::string& name) {
   for(auto& field : fields_) {
     if (field.first == name) {
       return field.second;
@@ -30,7 +36,7 @@ CPPLOG_INLINE const std::string& LogRecord::field(string_view name) {
   throw std::runtime_error("no such field");
 }
 
-CPPLOG_INLINE bool LogDispatcher::IsLevelEnabled(LogLevel level) const {
+CPPLOG_INLINE bool LogDispatcher::IsEnabled(LogLevel level) const {
     return level >= level_limit_;
 }
 

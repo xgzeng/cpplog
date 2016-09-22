@@ -84,5 +84,3 @@ TEST_CASE("logging macros") {
         REQUIRE(log_result.message() == "");
    }
 }
-
-

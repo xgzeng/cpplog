@@ -70,7 +70,7 @@ CPPLOG_INLINE JsonBuilder& JsonBuilder::EndValue() {
     break;
   case EXPECT_MORE_ARRAY_VALUE:
     break;
-   defaut:
+   default:
     assert(false);
   }
 

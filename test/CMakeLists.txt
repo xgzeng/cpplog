@@ -9,6 +9,7 @@ if(NLOHMANN_JSON_FOUND)
 endif()
 
 add_executable(cpplog_unittest ${UNITTEST_SRCS})
+# target_compile_features(cpplog_unittest PUBLIC cxx_relaxed_constexpr)
 
 target_link_libraries(cpplog_unittest fmt)
 
