@@ -19,10 +19,16 @@ CPPLOG_INLINE char LevelLetter(LogLevel l) {
 class ConsoleSink : public LogSink {
 public:
   void SubmitRecord(LogRecord& r) override {
+#ifdef _WIN32
+    struct tm tm_time_ {};
+    localtime_s(&tm_time_, &r.timestamp().tv_sec);
+    struct tm * tm_time = &tm_time_;
+#else
     struct tm * tm_time = localtime(&r.timestamp().tv_sec);
+#endif
 
     const char* base_filename = strrchr(r.file_name(), '/');
-#ifdef WIN32
+#ifdef _WIN32
     if (!base_filename) base_filename = strrchr(r.file_name(), '\\');
 #endif
     base_filename = base_filename ? base_filename + 1 : r.file_name();

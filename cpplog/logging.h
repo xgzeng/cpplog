@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <time.h>
 #include "config.h"
 #include "cpplog/json_builder.h"
 
