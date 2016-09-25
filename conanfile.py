@@ -8,6 +8,10 @@ class CpplogConan(ConanFile):
     requires = "fmt/3.0.0@memsharded/testing", \
                "nlJson/2.0.1@arnemertz/testing"
     generators = "cmake"
+    
+    def run(self, cmd):
+        self.output.info("Running: %s" % cmd)
+        ConanFile.run(self, cmd)
 
     def build(self):
         cmake = CMake(self.settings)
@@ -17,7 +21,6 @@ class CpplogConan(ConanFile):
 
     def package(self):
         self.copy("*.h", dst="include")
-        pass
 
 #    def package_info(self):
 #        pass
