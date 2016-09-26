@@ -1,7 +1,8 @@
 #pragma once
 #include <cpplog/config.h>
+#include <algorithm>
 #include <mutex>
-#ifdef _WINDOWS
+#ifdef _WIN32
 #else
 #include <sys/time.h>
 #endif

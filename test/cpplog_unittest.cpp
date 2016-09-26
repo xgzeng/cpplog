@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <cpplog/logging.h>
+#include <cpplog/console_sink.h>
 
 using namespace cpplog;
 
