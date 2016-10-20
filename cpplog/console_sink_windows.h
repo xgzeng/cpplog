@@ -1,9 +1,45 @@
 #pragma once
 #include <Windows.h>
 
+// wrap windows MultiByteToWideChar
+inline int MultiByteToWideChar2(UINT CodePage, DWORD dwFlags, const std::string& ns, std::wstring& ws) {
+  return MultiByteToWideChar(CodePage, dwFlags,
+                             ns.data(), static_cast<int>(ns.size()),
+                             const_cast<wchar_t*>(ws.data()),
+                             static_cast<int>(ws.size()));
+}
+
+inline int WideCharToMultiByte2(UINT CodePage, DWORD dwFlags, const std::wstring& ws, std::string& ns) {
+  return WideCharToMultiByte(CodePage, dwFlags,
+                             ws.data(), static_cast<int>(ws.size()),
+                             const_cast<char*>(ns.data()),
+                             static_cast<int>(ns.size()),
+                             nullptr, nullptr);
+}
+
+inline std::string Utf8ToMultibyteString(const std::string& s) {
+  // UTF8 to WideChar
+  std::wstring ws;
+  auto wchar_count = MultiByteToWideChar2(CP_UTF8, 0, s, ws);
+  ws.resize(wchar_count);
+  wchar_count = MultiByteToWideChar2(CP_UTF8, 0, s, ws);
+  ws.resize(wchar_count);
+
+  // WideChar To local codepage
+  std::string result;
+  auto byte_count = WideCharToMultiByte2(CP_ACP, 0, ws, result);
+  result.resize(byte_count);
+  byte_count = WideCharToMultiByte2(CP_ACP, 0, ws, result);
+  result.resize(byte_count);
+  return result;
+}
+
 class ConsoleSinkWindows : public LogSink {
   HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 public:
+  ConsoleSinkWindows() {
+  }
+
   void SubmitRecord(LogRecord& r) override {
     struct tm tm_local {};
     localtime_s(&tm_local, &r.timestamp().tv_sec);
@@ -42,7 +78,7 @@ public:
       << setw(4) << (r.timestamp().tv_nsec / 1000000)
       << ' '
       << base_filename << ':' << r.line() << ':' << r.function_name() << "] "
-      << r.message();
+      << Utf8ToMultibyteString(r.message());
 
     std::cout << std::endl;
   }
