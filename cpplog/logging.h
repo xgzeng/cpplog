@@ -173,20 +173,20 @@ constexpr cpplog::LogLevel LVL_ERROR = cpplog::LogLevel::error;
 constexpr cpplog::LogLevel LVL_FATAL = cpplog::LogLevel::fatal;
 
 #ifdef __GNUC__
-  #define __FUNCTION_INFO__ __PRETTY_FUNCTION__
+  #define __FUNCTION_SIGNATURE__ __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
-  #define __FUNCTION_INFO__ __FUNCSIG__
+  #define __FUNCTION_SIGNATURE__ __FUNCSIG__
 #else
-  #define __FUNCTION_INFO__ __func__
+  #define __FUNCTION_SIGNATURE__ ""
 #endif
 
 #define LOG(level, fmt, ...) \
     if (cpplog::LogDispatcher::instance().IsEnabled(LVL_##level)) \
-        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __FUNCTION_INFO__)  \
+        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
             .message(fmt, ##__VA_ARGS__)
 
 #define LOG_IF(level, condition, fmt, ...) \
     if (condition && cpplog::LogDispatcher::instance().IsEnabled(LVL_##level))  \
-        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __FUNCTION_INFO__)  \
+        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
             .message(fmt, ##__VA_ARGS__)
 
