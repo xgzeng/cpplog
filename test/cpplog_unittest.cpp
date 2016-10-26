@@ -2,6 +2,7 @@
 #include "catch.hpp"
 #include <cpplog/logging.h>
 #include <cpplog/console_sink.h>
+#include <cpplog/hex.h>
 
 using namespace cpplog;
 
@@ -51,6 +52,20 @@ TEST_CASE("LogCapture format interface") {
 
   LOG_CAPTURE(log_result).message("{}{}", 1, "hello") << StreamableObject{2};
   REQUIRE(log_result.message() == "1hello2");
+}
+
+TEST_CASE("cpplog hexify") {
+  std::string s{ '\x00', '\x01' };
+  LOG_CAPTURE(log_result).message("{}", hexify(s));
+  REQUIRE(log_result.message() == "00 01");
+
+  char char_array[] = {'\x01', '\x00', '\xFF'};
+  LOG_CAPTURE(log_result).message("{}", hexify(char_array));
+  REQUIRE(log_result.message() == "01 00 FF");
+
+  std::vector<uint8_t> vec_uint8{ 0, 16, 0xFF};
+  LOG_CAPTURE(log_result).message("{}", hexify(vec_uint8));
+  REQUIRE(log_result.message() == "00 10 FF");
 }
 
 TEST_CASE("LogCapture json properties") {
