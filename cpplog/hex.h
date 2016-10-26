@@ -4,9 +4,11 @@
 
 namespace cpplog {
 
-CPPLOG_INLINE std::string hexify(const std::string& bytes) {
-  static char HEX_CHARS[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-	                       '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+static const char HEX_CHARS[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+					   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+template<typename C>
+CPPLOG_INLINE std::string hexify(const C& bytes) {
   std::string result;
   for (char c : bytes) {
 	if (!result.empty()) result += " ";
