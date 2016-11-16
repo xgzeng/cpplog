@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cpplog/logging.h"
+#include <cpplog/logging.h>
 #include <glog/logging.h>
 
 namespace cpplog {

@@ -1,4 +1,20 @@
 #pragma once
+#include <cpplog/config.h>
+#include <cpplog/sink.h>
+
+namespace cpplog {
+
+CPPLOG_INLINE char LevelLetter(LogLevel l) {
+  switch (l) {
+  case LogLevel::trace: return 'T';
+  case LogLevel::debug: return 'D';
+  case LogLevel::info: return 'I';
+  case LogLevel::warning: return 'W';
+  case LogLevel::error: return 'E';
+  case LogLevel::fatal: return 'F';
+  default: return 'I';
+  }
+}
 
 class ConsoleSinkUnix : public LogSink {
 public:
@@ -61,3 +77,4 @@ private:
   }
 };
 
+} // namespace cpplog

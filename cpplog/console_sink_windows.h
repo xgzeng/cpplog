@@ -1,5 +1,28 @@
 #pragma once
+#include <cpplog/config.h>
+#include <cpplog/sink.h>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
+
+#include <iostream>
+#include <iomanip>
+
+namespace cpplog {
+
+CPPLOG_INLINE char LevelLetter(LogLevel l) {
+  switch (l) {
+  case LogLevel::trace: return 'T';
+  case LogLevel::debug: return 'D';
+  case LogLevel::info: return 'I';
+  case LogLevel::warning: return 'W';
+  case LogLevel::error: return 'E';
+  case LogLevel::fatal: return 'F';
+  default: return 'I';
+  }
+}
 
 // wrap windows MultiByteToWideChar
 inline int MultiByteToWideChar2(UINT CodePage, DWORD dwFlags, const std::string& ns, std::wstring& ws) {
@@ -83,3 +106,5 @@ public:
     std::cout << std::endl;
   }
 };
+
+} // namespace cpplog

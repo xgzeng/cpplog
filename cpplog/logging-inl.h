@@ -2,12 +2,11 @@
 #include <cpplog/config.h>
 #include <algorithm>
 #include <mutex>
-#ifdef _WIN32
-#else
+#ifndef _WIN32
 #include <sys/time.h>
 #endif
 
-#include "console_sink.h"
+#include <cpplog/console_sink.h>
 
 namespace cpplog {
 
@@ -17,7 +16,7 @@ CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
                             int line)
 : level_(level), file_name_(filename), func_(func), line_(line),
   timestamp_{0, 0} {
-#ifdef _WINDOWS
+#ifdef _WIN32
 	timespec_get(&timestamp_, TIME_UTC);
 #else
   struct timeval tv;
