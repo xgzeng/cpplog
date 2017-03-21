@@ -1,6 +1,6 @@
 #pragma once
-#include <cpplog/config.h>
-#include <cpplog/sink.h>
+#include "cpplog/config.h"
+#include "cpplog/sink.h"
 
 namespace cpplog {
 

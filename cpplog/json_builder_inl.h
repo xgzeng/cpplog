@@ -1,4 +1,3 @@
-#include <cpplog/config.h>
 #include <cassert>
 
 #define CHECK_STREAM_IS_OPEND()        \

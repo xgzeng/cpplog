@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cpplog/config.h>
-#include <cpplog/sink.h>
-#include <cpplog/json_builder.h>
+#include "cpplog/config.h"
+#include "cpplog/sink.h"
+#include "cpplog/json_builder.h"
 #include <time.h>
 #include <sstream>
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include "fmt/format.h"
+#include "fmt/ostream.h"
 
 namespace cpplog {
 
@@ -78,7 +78,7 @@ CPPLOG_INLINE void SetLogToConsole(bool enable);
 
 } // namespace log
 
-#include "logging-inl.h"
+#include "cpplog/logging-inl.h"
 
 /// macros
 constexpr cpplog::LogLevel LVL_DEBUG = cpplog::LogLevel::debug;

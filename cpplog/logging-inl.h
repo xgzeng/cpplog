@@ -1,12 +1,12 @@
 #pragma once
-#include <cpplog/config.h>
+
 #include <algorithm>
 #include <mutex>
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
 
-#include <cpplog/console_sink.h>
+#include "cpplog/console_sink.h"
 
 namespace cpplog {
 
@@ -17,7 +17,7 @@ CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
 : level_(level), file_name_(filename), func_(func), line_(line),
   timestamp_{0, 0} {
 #ifdef _WIN32
-	timespec_get(&timestamp_, TIME_UTC);
+  timespec_get(&timestamp_, TIME_UTC);
 #else
   struct timeval tv;
   if (0 == gettimeofday(&tv, nullptr)) {
@@ -97,7 +97,7 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
 // LogCapturer
 CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const char* filename,
                                      int line, const char* func)
-: sink_(LogDispatcher::instance()), record_(level, filename, func, line) {
+: record_(level, filename, func, line), sink_(LogDispatcher::instance()) {
 }
 
 CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
@@ -105,7 +105,7 @@ CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
                                      const char* filename,
                                      int line,
                                      const char* func)
-: sink_(s), record_(level, filename, func, line) {
+: record_(level, filename, func, line), sink_(s) {
 }
 
 CPPLOG_INLINE LogCapture::~LogCapture() {

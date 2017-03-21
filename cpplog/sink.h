@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cpplog/config.h>
+#include "cpplog/config.h"
 #include <string>
 #include <time.h>
 #include <vector>
