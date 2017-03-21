@@ -66,19 +66,31 @@ private:
 
 namespace detail {
   template<typename T>
+#if __cplusplus >= 201402L
   typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, void>
+#else
+  typename std::enable_if<std::is_integral<T>::value && !std::is_same<T, bool>::value, void>::type
+#endif
   WriteValueHelp(JsonBuilder& stream, T value) {
     stream.WriteInteger(value);
   }
 
   template<typename T>
+#if __cplusplus >= 201402L
   typename std::enable_if_t<std::is_same<T, bool>::value, void>
+#else
+  typename std::enable_if<std::is_same<T, bool>::value, void>::type
+#endif
   WriteValueHelp(JsonBuilder& stream, T value) {
     stream.WriteBool(value);
   }
 
   template<typename T>
+#if __cplusplus >= 201402L
   typename std::enable_if_t<std::is_floating_point<T>::value, void>
+#else
+  typename std::enable_if<std::is_floating_point<T>::value, void>::type
+#endif
   WriteValueHelp(JsonBuilder& stream, T value) {
     stream.WriteDouble(value);
   }
@@ -115,13 +127,21 @@ struct dumper {
 };
 
 template<typename T>
+#if __cplusplus >= 201402L
 typename std::enable_if_t<detail::is_basic_value<T>::value>
+#else
+typename std::enable_if<detail::is_basic_value<T>::value>::type
+#endif
   dump(JsonBuilder& json_builder, T&& value) {
   json_builder.WriteValue(std::forward<T>(value));
 }
 
 template<typename T>
-typename std::enable_if_t<!detail::is_basic_value<T>::value>
+#if __cplusplus >= 201402L
+  typename std::enable_if_t<!detail::is_basic_value<T>::value>
+#else
+  typename std::enable_if<!detail::is_basic_value<T>::value>::type
+#endif
   dump(JsonBuilder& json_builder, T&& value) {
   dumper<typename std::decay<T>::type>{}(json_builder, std::forward<T>(value));
 }
