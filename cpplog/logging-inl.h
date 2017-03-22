@@ -80,7 +80,7 @@ CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
 
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
   if (!LogDispatcher::instance().HasLogSink(sink)) {
-      LogDispatcher::instance().AddLogSink(sink);
+    LogDispatcher::instance().AddLogSink(sink);
   }
 }
 
