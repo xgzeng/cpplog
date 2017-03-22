@@ -1,4 +1,4 @@
-cc_binary(
+cc_test(
     name = "cpplog_test",
     srcs = [
         "catch.hpp",
