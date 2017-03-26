@@ -1,4 +1,5 @@
 #pragma once
+#include "cpplog/config.h"
 #include <sstream>
 #include <stack>
 

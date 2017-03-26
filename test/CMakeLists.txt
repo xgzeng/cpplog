@@ -1,6 +1,6 @@
 set(UNITTEST_SRCS
-    cpplog_unittest.cpp
-    json_builder_unittest.cpp
+    #cpplog_unittest.cpp
+    #json_builder_unittest.cpp
 )
 
 if(NLOHMANN_JSON_FOUND)

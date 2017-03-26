@@ -1,6 +1,6 @@
 #pragma once
-#include <cpplog/json_builder.h>
-#include <json.hpp>
+#include "cpplog/json_builder.h"
+#include "json.hpp"
 
 namespace cpplog {
 
@@ -22,7 +22,7 @@ struct dumper<nlohmann::json> {
         }
         jb.ObjectEnd();
       }
-       break;
+      break;
     case value_t::array:
       {
         jb.ArrayBegin();
@@ -54,5 +54,6 @@ struct dumper<nlohmann::json> {
   }
 };
 
-};
+} // namespace cpplog
+
 

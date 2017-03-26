@@ -2,6 +2,7 @@
 
 #include "cpplog/config.h"
 #include "cpplog/sink.h"
+#include "cpplog/record.h"
 #include "cpplog/json_builder.h"
 #include <time.h>
 #include <sstream>
@@ -59,9 +60,10 @@ public:
   // capture log record properties
   template<typename T>
   LogCapture& operator()(const std::string& name, T&& value) {
-    JsonBuilder jb;
-    dump(jb, std::forward<T>(value));
-    record_.add_field(name, jb.ExtractString());
+    //JsonBuilder jb;
+    // dump(jb, std::forward<T>(value));
+    // jb.ExtractString()
+    record_.attachment().add(name, value);
     return *this;
   }
 

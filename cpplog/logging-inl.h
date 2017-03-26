@@ -27,15 +27,6 @@ CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
 #endif
 }
 
-CPPLOG_INLINE const std::string& LogRecord::field(const std::string& name) {
-  for(auto& field : fields_) {
-    if (field.first == name) {
-      return field.second;
-    }
-  }
-  throw std::runtime_error("no such field");
-}
-
 CPPLOG_INLINE bool LogDispatcher::IsEnabled(LogLevel level) const {
     return level >= level_limit_;
 }

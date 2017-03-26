@@ -1,0 +1,11 @@
+cc_library(
+    name = "json",
+    hdrs = [
+      "src/json.hpp",
+    ],
+    strip_include_prefix = "src",
+    visibility = [
+        "//visibility:public"
+    ]
+)
+
