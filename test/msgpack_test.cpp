@@ -2,7 +2,6 @@
 #include "cpplog/msgpack_unpack.h"
 #include "cpplog/hex.h"
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "fakeit.hpp"
 
@@ -19,20 +18,22 @@ TEST_CASE("Test nil/bool pack") {
   Fake(Method(mock_visitor, on_nil));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
+
   SECTION("msg_pack_bool(true)") {
-    msgpack_pack_boolean(buffer, true);
+    msgpack_pack_boolean(writer, true);
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_boolean).Using(true)).Once();
   }
 
   SECTION("msg_pack_bool(false)") {
-    msgpack_pack_boolean(buffer, false);
+    msgpack_pack_boolean(writer, false);
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_boolean).Using(false)).Once();
   }
 
   SECTION("msg_pack_nil()") {
-    msgpack_pack_nil(buffer);
+    msgpack_pack_nil(writer);
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_nil)).Once();
   }
@@ -41,8 +42,7 @@ TEST_CASE("Test nil/bool pack") {
 #define TEST_PACK_INT(n, expected_seq)                     \
   SECTION("msg_pack_int(" STRINGIFY(n) ")") {              \
     static_assert(std::is_signed<decltype(n)>::value, ""); \
-    msgpack_pack_int(buffer, n);                           \
-    printf("%s\n", hexify(buffer).c_str());                \
+    msgpack_pack_int(writer, n);                           \
     REQUIRE(buffer == std::string expected_seq);           \
     msgpack_unpack(buffer, mock_visitor.get());            \
     Verify(Method(mock_visitor, on_int).Using(n)).Once();  \
@@ -51,8 +51,7 @@ TEST_CASE("Test nil/bool pack") {
 #define TEST_PACK_BIGINT(n, expected_seq)                  \
   SECTION("msg_pack_int(" STRINGIFY(n) ")") {              \
     static_assert(std::is_signed<decltype(n)>::value, ""); \
-    msgpack_pack_int(buffer, n);                           \
-    printf("%s\n", hexify(buffer).c_str());                \
+    msgpack_pack_int(writer, n);                           \
     REQUIRE(buffer == std::string expected_seq);           \
     msgpack_unpack(buffer, mock_visitor.get());            \
     Verify(Method(mock_visitor, on_longlong).Using(n)).Once();  \
@@ -64,6 +63,7 @@ TEST_CASE("Test Signed Int Family Packing") {
   Fake(Method(mock_visitor, on_int));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
   // positive fix int
   TEST_PACK_INT(0,    {'\x00'});
@@ -117,8 +117,7 @@ TEST_CASE("Test Signed Int Family Packing") {
   SECTION("msg_pack_int(" STRINGIFY(n) ")") {              \
     static_assert(std::is_unsigned<decltype(n)>::value,    \
                   "unsigned value required");              \
-    msgpack_pack_int(buffer, n);                           \
-    printf("%s\n", hexify(buffer).c_str());                \
+    msgpack_pack_int(writer, n);                           \
     REQUIRE(buffer == std::string expected_seq);           \
     msgpack_unpack(buffer, mock_visitor.get());            \
     Verify(Method(mock_visitor, on_uint).Using(n)).Once();  \
@@ -128,8 +127,7 @@ TEST_CASE("Test Signed Int Family Packing") {
   SECTION("msg_pack_int(" STRINGIFY(n) ")") {              \
     static_assert(std::is_unsigned<decltype(n)>::value,    \
                   "unsigned value required");              \
-    msgpack_pack_int(buffer, n);                           \
-    printf("%s\n", hexify(buffer).c_str());                \
+    msgpack_pack_int(writer, n);                           \
     REQUIRE(buffer == std::string expected_seq);           \
     msgpack_unpack(buffer, mock_visitor.get());            \
     Verify(Method(mock_visitor, on_ulonglong).Using(n)).Once(); \
@@ -141,6 +139,7 @@ TEST_CASE("Test Unsigned Int Family Packing") {
   Fake(Method(mock_visitor, on_uint));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
   // positive fix int
 #if 0
@@ -178,10 +177,11 @@ TEST_CASE("Test array pack and unpack") {
   Fake(Method(mock_visitor, on_array));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
 #define TEST_PACK_ARRAY(array_size, expected_sequence)                 \
   SECTION("msg_pack_array(" STRINGIFY(array_size) ")") {               \
-    msgpack_pack_array(buffer, array_size);                            \
+    msgpack_pack_array(writer, array_size);                            \
     REQUIRE(buffer == std::string expected_sequence);                  \
     msgpack_unpack(buffer, mock_visitor.get());                        \
     Verify(Method(mock_visitor, on_array).Using(array_size)).Once();   \
@@ -208,10 +208,11 @@ TEST_CASE("Test map pack and unpack") {
   Fake(Method(mock_visitor, on_map));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
 #define TEST_PACK_MAP(n, expected_sequence)                 \
   SECTION("msg_pack_array(" STRINGIFY(n) ")") {               \
-    msgpack_pack_map(buffer, n);                            \
+    msgpack_pack_map(writer, n);                            \
     REQUIRE(buffer == std::string expected_sequence);                  \
     msgpack_unpack(buffer, mock_visitor.get());                        \
     Verify(Method(mock_visitor, on_map).Using(n)).Once();   \
@@ -238,11 +239,12 @@ TEST_CASE("Test pack string") {
   Fake(Method(mock_visitor, on_string));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
 #if 1
   SECTION("") {
     std::string expected_string {""};
-    msgpack_pack_str(buffer, "");
+    msgpack_pack_str(writer, "");
     REQUIRE(buffer == std::string{"\xa0"});
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_string)
@@ -253,7 +255,7 @@ TEST_CASE("Test pack string") {
 #define TEST_PACK_STRING(s, expected_seq)                 \
   SECTION("msg_pack_string(" STRINGIFY(s) ")") {          \
     std::string expected_string {expected_seq};           \
-    msgpack_pack_str(buffer, s);                          \
+    msgpack_pack_str(writer, s);                          \
     REQUIRE(buffer == expected_string);                   \
     msgpack_unpack(buffer, mock_visitor.get());           \
     Verify(Method(mock_visitor, on_string).Using(s)).Once();    \
@@ -271,7 +273,6 @@ TEST_CASE("Test pack string") {
     (std::string{'\xdb', '\x00', '\x01', '\x00', '\x00'} + std::string(65536, 'a')));
 }
 
-
 TEST_CASE("Test float pack") {
   Mock<msgpack_visitor> mock_visitor;
 
@@ -279,15 +280,16 @@ TEST_CASE("Test float pack") {
   Fake(Method(mock_visitor, on_double));
 
   std::string buffer;
+  StringBufferWriter writer(buffer);
 
   SECTION("float type") {
-    msgpack_pack_float(buffer, 1.0);
+    msgpack_pack_float(writer, 1.0);
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_float).Using(1.0)).Once();
   }
 
   SECTION("float type") {
-    msgpack_pack_double(buffer, 0.1);
+    msgpack_pack_double(writer, 0.1);
     msgpack_unpack(buffer, mock_visitor.get());
     Verify(Method(mock_visitor, on_double).Using(0.1)).Once();
   }

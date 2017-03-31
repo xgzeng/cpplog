@@ -1,6 +1,9 @@
 #pragma once
 
 #include "cpplog/config.h"
+#include "cpplog/utils.h"
+#include "cpplog/attachment.h"
+#include "cpplog/json_attachment.h"
 
 namespace cpplog {
 
@@ -13,20 +16,7 @@ enum class LogLevel {
   fatal
 };
 
-class Attachment {
-public:
-  bool empty() const {
-    return map_size == 0;
-  }
-
-  void add(const std::string& name, const std::string value);
-
-  void add(const std::string& name, int value);
-
-private:
-  int map_size = 0;
-  std::string msg_pack_map_data;
-};
+class Attachment;
 
 class LogRecord {
 public:
@@ -70,11 +60,11 @@ public:
     return timestamp_;
   }
 
-  Attachment& attachment() {
+  JsonAttachment& attachment() {
     return attachment_;
   }
 
-  const Attachment& attachment() const {
+  const JsonAttachment& attachment() const {
     return attachment_;
   }
 
@@ -86,7 +76,10 @@ private:
   const char* func_ = "";
   int line_ = 0;
   timespec timestamp_ = { 0 , 0 };
-  Attachment attachment_;
+  JsonAttachment attachment_;
 };
 
 } // namespace cpplog
+
+#include "cpplog/record_inl.h"
+

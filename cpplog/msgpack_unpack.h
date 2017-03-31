@@ -6,7 +6,70 @@
 
 namespace cpplog {
 
+struct msgpack_array_mark {
+  uint32_t size;
+};
+
+struct msgpack_map_mark {
+  uint32_t size;
+};
+
 struct msgpack_visitor {
+
+  template<typename T,
+           typename std::enable_if<std::is_signed<T>::value &&
+                                   helper::is_safe_integer_cast<T, int>::value, int>::type = 0>
+  void operator()(T value) {
+    on_int(value);
+  }
+
+  template<typename T,
+           typename std::enable_if<std::is_signed<T>::value &&
+                                   !helper::is_safe_integer_cast<T, int>::value, int>::type = 0>
+  void operator()(T value) {
+    static_assert(helper::is_safe_integer_cast<T, long long>::value, "");
+    on_longlong(value);
+  }
+
+  template<typename T,
+           typename std::enable_if<!std::is_signed<T>::value &&
+                                   helper::is_safe_integer_cast<T, unsigned int>::value, int>::type = 0>
+  void operator()(T value) {
+    on_uint(value);
+  }
+
+  template<typename T,
+           typename std::enable_if<!std::is_signed<T>::value &&
+                                   !helper::is_safe_integer_cast<T, unsigned int>::value, int>::type = 0>
+  void operator()(T value) {
+    static_assert(helper::is_safe_integer_cast<T, unsigned long long>::value, "");
+    on_ulonglong(value);
+  }
+
+  void operator()(float value) {
+    on_float(value);
+  }
+
+  void operator()(double value) {
+    on_double(value);
+  }
+
+  void operator()(std::nullptr_t value) {
+    on_nil();
+  }
+
+  void operator()(bool value) {
+    on_boolean(value);
+  }
+
+  void operator()(msgpack_array_mark value) {
+    on_array(value.size);
+  }
+
+  void operator()(msgpack_map_mark value) {
+    on_map(value.size);
+  }
+
   virtual void on_int      (int       value) = 0;
   virtual void on_uint     (unsigned int value) = 0;
   virtual void on_longlong (long long value) = 0;
@@ -18,10 +81,9 @@ struct msgpack_visitor {
   virtual void on_string(string_view s) = 0;
   virtual void on_nil() = 0;
   virtual void on_boolean(bool    value) = 0;
+
   virtual void on_array  (uint32_t array_size) = 0;
   virtual void on_map    (uint32_t map_size) = 0;
-
-  virtual void more_data () = 0;
 };
 
 namespace helper {
@@ -53,35 +115,23 @@ typename std::enable_if<helper::is_safe_integer_cast<T, int>::value, int>::type
 msgpack_read_signed(string_view buffer, msgpack_visitor& visitor) {
   static_assert(std::is_signed<T>::value, "");
 
-  int byte_consumed = read_integer<T>(buffer,
-          [&](T value) { visitor.on_int(value); });
-
-  if (byte_consumed == 0) {
-    visitor.more_data();
-  }
-
-  return byte_consumed;
+  return read_integer<T>(buffer,
+          [&](T value) { visitor(value); });
 }
 
 template<typename T>
 typename std::enable_if<!helper::is_safe_integer_cast<T, int>::value, int>::type
 msgpack_read_signed(string_view buffer, msgpack_visitor& visitor) {
   static_assert(std::is_signed<T>::value, "");
-  int byte_consumed = read_integer<T>(buffer,
+  return read_integer<T>(buffer,
       [&](T value) {
           if (value >= std::numeric_limits<int>::min()
               && value <= std::numeric_limits<int>::max()) {
-            visitor.on_int(value);
+            visitor(value);
           } else {
-            visitor.on_longlong(value);
+            visitor(value);
           }
       });
-
-  if (byte_consumed == 0) {
-    visitor.more_data();
-  }
-
-  return byte_consumed;
 }
 
 template<typename T>
@@ -89,34 +139,22 @@ typename std::enable_if<helper::is_safe_integer_cast<T, unsigned int>::value, in
 msgpack_read_unsigned(string_view buffer, msgpack_visitor& visitor) {
   static_assert(std::is_unsigned<T>::value, "");
 
-  int byte_consumed = read_integer<T>(buffer,
-          [&](T value) { visitor.on_uint(value); });
-
-  if (byte_consumed == 0) {
-    visitor.more_data();
-  }
-
-  return byte_consumed;
+  return read_integer<T>(buffer,
+          [&](T value) { visitor(value); });
 }
 
 template<typename T>
 typename std::enable_if<!helper::is_safe_integer_cast<T, unsigned int>::value, int>::type
 msgpack_read_unsigned(string_view buffer, msgpack_visitor& visitor) {
   static_assert(std::is_unsigned<T>::value, "");
-  int byte_consumed = read_integer<T>(buffer,
+  return read_integer<T>(buffer,
       [&](T value) {
           if (value <= std::numeric_limits<unsigned int>::max()) {
-            visitor.on_uint(value);
+            visitor(value);
           } else {
-            visitor.on_ulonglong(value);
+            visitor(value);
           }
       });
-
-  if (byte_consumed == 0) {
-    visitor.more_data();
-  }
-
-  return byte_consumed;
 }
 
 template<typename T, typename F>
@@ -146,7 +184,6 @@ CPPLOG_INLINE std::pair<bool, const char*>
   if ((fmt & 0xE0) == 0xA0) { // fix str
     const size_t string_length = fmt & 0x1F;
     if (remain_buffer.size() < string_length) {
-      visitor.more_data();
       return std::make_pair(false, nullptr);
     } else {
       visitor.on_string({remain_buffer.begin(), string_length});
@@ -158,16 +195,14 @@ CPPLOG_INLINE std::pair<bool, const char*>
   case 0xca: // float32
     consumed_bc = helper::read_integer<uint32_t>(remain_buffer,
               [&](uint32_t value) {
-                  visitor.on_float(*reinterpret_cast<float*>(&value));
+                  visitor(*reinterpret_cast<float*>(&value));
               });
-    if (consumed_bc == 0) visitor.more_data();
     break;
   case 0xcb: // float64
     consumed_bc = helper::read_integer<uint64_t>(remain_buffer,
             [&](uint64_t value) {
-                visitor.on_double(*reinterpret_cast<double*>(&value));
+                visitor(*reinterpret_cast<double*>(&value));
             });
-    if (consumed_bc == 0) visitor.more_data();
     break;
   case 0xcc: // uint8
     consumed_bc = helper::msgpack_read_unsigned<uint8_t>(remain_buffer, visitor);
@@ -198,41 +233,34 @@ CPPLOG_INLINE std::pair<bool, const char*>
                 [&](const char* data, size_t data_size) {
                   visitor.on_string({data, data_size});
                 });
-    if (consumed_bc == 0) visitor.more_data();
     break;
   case 0xda: // str16
     consumed_bc = helper::read_length_then_data<uint16_t>(remain_buffer,
                 [&](const char* data, size_t data_size) {
                   visitor.on_string({data, data_size});
                 });
-    if (consumed_bc == 0) visitor.more_data();
     break;
   case 0xdb: // str32
     consumed_bc = helper::read_length_then_data<uint32_t>(remain_buffer,
                 [&](const char* data, size_t data_size) {
                   visitor.on_string({data, data_size});
                 });
-    if (consumed_bc == 0) visitor.more_data();
     break;
   case 0xdc: // array16
     consumed_bc = helper::read_integer<uint16_t>(remain_buffer,
-              [&](uint16_t value) { visitor.on_array(value); });
-    if (consumed_bc == 0) visitor.more_data();
+              [&](uint16_t value) { visitor(msgpack_array_mark{value}); });
     break;
   case 0xdd: // array32
     consumed_bc = helper::read_integer<uint32_t>(remain_buffer,
-              [&](uint32_t value) { visitor.on_array(value); });
-    if (consumed_bc == 0) visitor.more_data();
+              [&](uint32_t value) { visitor(msgpack_array_mark{value}); });
     break;
   case 0xde: // map16
     consumed_bc = helper::read_integer<uint16_t>(remain_buffer,
-              [&](uint16_t value) { visitor.on_map(value); });
-    if (consumed_bc == 0) visitor.more_data();
+              [&](uint16_t value) { visitor(msgpack_map_mark{value}); });
     break;
   case 0xdf: // map32
     consumed_bc = helper::read_integer<uint32_t>(remain_buffer,
-              [&](uint32_t value) { visitor.on_map(value); });
-    if (consumed_bc == 0) visitor.more_data();
+              [&](uint32_t value) { visitor(msgpack_map_mark{value}); });
     break;
   default: // unimplemented
     return std::make_pair(false, nullptr);
@@ -252,7 +280,7 @@ CPPLOG_INLINE int msgpack_unpack(string_view buffer, msgpack_visitor& visitor) {
   while (p_fmt != buffer.end()) {
     const uint8_t fmt = *p_fmt;
     if (fmt <= 0x7f) {  // positive fix int
-      visitor.on_int(fmt & 0x7F);
+      visitor(fmt & 0x7F);
       ++p_fmt;
     } else if ((fmt & 0xF0) == 0x80) { // fix map
       visitor.on_map(fmt & 0x0F);
@@ -261,16 +289,16 @@ CPPLOG_INLINE int msgpack_unpack(string_view buffer, msgpack_visitor& visitor) {
       visitor.on_array(fmt & 0x0F);
       ++p_fmt;
     } else if ((fmt & 0xE0) == 0xE0) { // negative fix int
-      visitor.on_int((int8_t)fmt);
+      visitor((int8_t)fmt);
       ++p_fmt;
     } else if (fmt == 0xc0) {
-      visitor.on_nil();
+      visitor(nullptr);
       ++p_fmt;
     } else if (fmt == 0xc2) {
-      visitor.on_boolean(false);
+      visitor(false);
       ++p_fmt;
     } else if (fmt == 0xc3) {
-      visitor.on_boolean(true);
+      visitor(true);
       ++p_fmt;
     } else {
       // types with more data after fmt byte

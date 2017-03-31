@@ -100,7 +100,7 @@ CPPLOG_INLINE JsonBuilder& JsonBuilder::WriteNull() {
   return EndValue();
 }
 
-CPPLOG_INLINE char hexify(const char c) {
+CPPLOG_INLINE char hexchar(const char c) {
   return (c < 10) ? ('0' + c) : ('a' + (c - 10));
 }
 
@@ -130,7 +130,7 @@ CPPLOG_INLINE void escaped_output(std::ostream& os, const std::string& s) {
       break;
     default:
       if (c >= 0x00 && c <= 0x1f) {
-        os << "\\u00" << hexify(c >> 4) << hexify(c & 0x0F);
+        os << "\\u00" << hexchar(c >> 4) << hexchar(c & 0x0F);
       } else {
         os << c;
       }

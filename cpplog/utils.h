@@ -1,10 +1,17 @@
 #pragma once
 #include "cpplog/config.h"
 
+#include <arpa/inet.h>
+
+//#ifdef __APLLE__
+//#include <sys/_endian.h>
+//#endif
+
 namespace cpplog {
 
 namespace helper {
 
+#ifndef __APPLE__
 CPPLOG_INLINE uint16_t htons(uint16_t value) {
   // The answer is 42
   static const int num = 42;
@@ -46,6 +53,7 @@ CPPLOG_INLINE uint64_t htonll(uint64_t value) {
     return value;
   }
 }
+#endif
 
 template<typename T>
 struct is_integer {
@@ -87,19 +95,19 @@ to_hostendian(T value) {
 template<typename T>
 typename std::enable_if<is_integer<T>::value && sizeof(T)==2, T>::type
 to_hostendian(T value) {
-  return htons(value);
+  return ntohs(value);
 }
 
 template<typename T>
 typename std::enable_if<is_integer<T>::value && sizeof(T)==4, T>::type
 to_hostendian(T value) {
-  return htonl(value);
+  return ntohl(value);
 }
 
 template<typename T>
 typename std::enable_if<is_integer<T>::value && sizeof(T)==8, T>::type
 to_hostendian(T value) {
-  return htonll(value);
+  return ntohll(value);
 }
 
 /// integer cast safeness template

@@ -24,6 +24,10 @@ public:
   : data_(s), count_(strlen(s)) {
   }
 
+  operator std::string () const {
+    return std::string(data_, count_);
+  }
+
   bool operator == (const string_view& other) const {
     if (count_ != other.count_) return false;
     for (size_t i = 0; i < count_; ++i) {

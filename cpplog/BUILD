@@ -9,6 +9,7 @@ cc_library(
         "logging.h",
         "sink.h",
         "record.h",
+        "attachment.h",
         "msgpack_pack.h",
         "msgpack_unpack.h",
         "support_nlohmann_json.h"
@@ -19,7 +20,10 @@ cc_library(
         "console_sink_unix.h",
         "console_sink_windows.h",
         "json_builder_inl.h",
+        "json_attachment.h",
+        "attachment_inl.h",
         "logging-inl.h",
+        "record_inl.h"
     ],
     include_prefix = "cpplog",
     visibility = [

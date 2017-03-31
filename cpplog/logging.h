@@ -59,11 +59,11 @@ public:
 
   // capture log record properties
   template<typename T>
-  LogCapture& operator()(const std::string& name, T&& value) {
+  LogCapture& operator()(string_view name, T&& value) {
     //JsonBuilder jb;
     // dump(jb, std::forward<T>(value));
     // jb.ExtractString()
-    record_.attachment().add(name, value);
+    record_.attachment().add(name, std::forward<T>(value));
     return *this;
   }
 

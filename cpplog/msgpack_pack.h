@@ -9,175 +9,187 @@ namespace cpplog {
 
 namespace helper {
 
-CPPLOG_INLINE void msgpack_append_fmt(std::string& buffer, uint8_t fmt) {
-  buffer.push_back(fmt);
-}
-
-CPPLOG_INLINE void msgpack_append_bytes(std::string& buffer, string_view bytes) {
-  buffer.append(bytes.begin(), bytes.end());
-}
-
-template<typename T>
-CPPLOG_INLINE void msgpack_append_fmt_and_integer(std::string& buffer, uint8_t fmt, T int_value) {
-  buffer.push_back(fmt);
+template<typename Writer, typename T>
+CPPLOG_INLINE void msgpack_append_fmt_and_integer(Writer&& writer, uint8_t fmt, T int_value) {
   int_value = to_bigendian(int_value);
-  buffer.append((const char*) &int_value, sizeof(int_value));
+  writer.WriteByte(fmt)
+        .WriteBytes(&int_value, sizeof(int_value));
 }
+
+#if 0
+/// code not used
+template<typename T>
+struct IntegerFormatCode;
+
+#define DEFINE_INTEGER_FMT_CODE(TYPE, CODE)   \
+  template<> struct IntegerFormatCode<TYPE> { \
+    const static uint8_t fmt_code = CODE;     \
+  };
+
+DEFINE_INTEGER_FMT_CODE(uint8_t,  0xcc);
+DEFINE_INTEGER_FMT_CODE(uint16_t, 0xcd);
+DEFINE_INTEGER_FMT_CODE(uint32_t, 0xce);
+DEFINE_INTEGER_FMT_CODE(uint64_t, 0xcf);
+
+DEFINE_INTEGER_FMT_CODE(int8_t,   0xd0);
+DEFINE_INTEGER_FMT_CODE(int16_t,  0xd1);
+DEFINE_INTEGER_FMT_CODE(int32_t,  0xd2);
+DEFINE_INTEGER_FMT_CODE(int64_t,  0xd3);
+#endif
 
 } // helper
 
-/// int family
-CPPLOG_INLINE void msgpack_pack_uint8(std::string& buffer, uint8_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xcc, value);
-}
+class StringBufferWriter {
+public:
+  StringBufferWriter(std::string& b) : buf_(b) {}
 
-CPPLOG_INLINE void msgpack_pack_uint16(std::string& buffer, uint16_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xcd, value);
-}
+  StringBufferWriter& WriteByte(uint8_t b) {
+    buf_.push_back(b);
+    return *this;
+  }
 
-CPPLOG_INLINE void msgpack_pack_uint32(std::string& buffer, uint32_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xce, value);
-}
+  StringBufferWriter& WriteBytes(const void* data, size_t count) {
+    buf_.append((const char*)data, count);
+    return *this;
+  }
 
-CPPLOG_INLINE void msgpack_pack_uint64(std::string& buffer, uint64_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xcf, value);
-}
-
-CPPLOG_INLINE void msgpack_pack_int8(std::string& buffer, int8_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xd0, value);
-}
-
-CPPLOG_INLINE void msgpack_pack_int16(std::string& buffer, int16_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xd1, value);
-}
-
-CPPLOG_INLINE void msgpack_pack_int32(std::string& buffer, int32_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xd2, value);
-}
-
-CPPLOG_INLINE void msgpack_pack_int64(std::string& buffer, int64_t value) {
-  helper::msgpack_append_fmt_and_integer(buffer, 0xd3, value);
-}
+private:
+  std::string& buf_;
+};
 
 /// float
-CPPLOG_INLINE void msgpack_pack_float(std::string& buffer, float value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_float(Writer&& writer, float value) {
   static_assert(sizeof(float) == sizeof(uint32_t), "");
-  helper::msgpack_append_fmt_and_integer(buffer, 0xca,
+  helper::msgpack_append_fmt_and_integer(writer, 0xca,
           *reinterpret_cast<uint32_t*>(&value));
 }
 
-CPPLOG_INLINE void msgpack_pack_double(std::string& buffer, double value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_double(Writer&& writer, double value) {
   static_assert(sizeof(double) == sizeof(uint64_t), "");
-
-  helper::msgpack_append_fmt_and_integer(buffer, 0xcb,
+  helper::msgpack_append_fmt_and_integer(writer, 0xcb,
           *reinterpret_cast<uint64_t*>(&value));
 }
 
 /// str format family
-CPPLOG_INLINE void msgpack_pack_str(std::string& buffer, string_view str) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_str(Writer&& writer, string_view str) {
   if (str.length() <= 31) {
     // fix str
-    helper::msgpack_append_fmt(buffer, 0xa0 | (str.length() & 0x1F));
+    writer.WriteByte(0xa0 | (str.length() & 0x1F));
   } else if (str.length() <= 255) {
     // str 8
-    helper::msgpack_append_fmt_and_integer<uint8_t>(buffer, 0xd9, str.length());
+    helper::msgpack_append_fmt_and_integer(writer, 0xd9, static_cast<uint8_t>(str.length()));
   } else if (str.length() <= 0xFFFF) {
     // str 16
-    helper::msgpack_append_fmt_and_integer<uint16_t>(buffer, 0xda, str.length());
+    helper::msgpack_append_fmt_and_integer(writer, 0xda, static_cast<uint16_t>(str.length()));
   } else if (str.length() <= 0xFFFFFFFF){
     // str 32
-    helper::msgpack_append_fmt_and_integer<uint32_t>(buffer, 0xdb, str.length());
+    helper::msgpack_append_fmt_and_integer(writer, 0xdb, static_cast<uint32_t>(str.length()));
   }
-  helper::msgpack_append_bytes(buffer, str);
+
+  writer.WriteBytes(str.begin(), str.size());
 }
 
 /// array format family
-CPPLOG_INLINE void msgpack_pack_array(std::string& buffer, uint32_t array_size) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_array(Writer&& writer, uint32_t array_size) {
   if (array_size <= 15) {
     // fix array
-    helper::msgpack_append_fmt(buffer, 0x90 | (array_size & 0x0F));
+    writer.WriteByte(0x90 | (array_size & 0x0F));
   } else if (array_size <= 0xFFFF) {
     // array 16
-    helper::msgpack_append_fmt_and_integer<uint16_t>(buffer, 0xdc, array_size);
+    helper::msgpack_append_fmt_and_integer(writer, 0xdc, static_cast<uint16_t>(array_size));
   } else if (array_size <= 0xFFFFFFFF) {
     // array 32
-    helper::msgpack_append_fmt_and_integer<uint32_t>(buffer, 0xdd, array_size);
+    helper::msgpack_append_fmt_and_integer(writer, 0xdd, static_cast<uint32_t>(array_size));
   }
 }
 
 /// map format family
-CPPLOG_INLINE void msgpack_pack_map(std::string& buffer, uint32_t map_size) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_map(Writer&& writer, uint32_t map_size) {
   if (map_size <= 15) {
     // fix map
-    helper::msgpack_append_fmt(buffer, 0x80 | (map_size & 0x0F));
+    writer.WriteByte(0x80 | (map_size & 0x0F));
   } else if (map_size <= 0xFFFF) {
     // map 16
-    helper::msgpack_append_fmt_and_integer<uint16_t>(buffer, 0xde, map_size);
+    helper::msgpack_append_fmt_and_integer(writer, 0xde, static_cast<uint16_t>(map_size));
   } else if (map_size <= 0xFFFFFFFF) {
     // map 32
-    helper::msgpack_append_fmt_and_integer<uint32_t>(buffer, 0xdf, map_size);
+    helper::msgpack_append_fmt_and_integer(writer, 0xdf, static_cast<uint32_t>(map_size));
   }
 }
 
-CPPLOG_INLINE void msgpack_pack_nil(std::string& buffer) {
-  helper::msgpack_append_fmt(buffer, 0xc0);
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_nil(Writer&& writer) {
+  writer.WriteByte(0xc0);
 }
 
-CPPLOG_INLINE void msgpack_pack_boolean(std::string& buffer, bool value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_boolean(Writer&& writer, bool value) {
   if (value) {
-    helper::msgpack_append_fmt(buffer, 0xc3);
+    writer.WriteByte(0xc3);
   } else {
-    helper::msgpack_append_fmt(buffer, 0xc2);
+    writer.WriteByte(0xc2);
   }
 }
 
-CPPLOG_INLINE void msgpack_pack_int_impl32(std::string& buffer, int32_t value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_int_impl32(Writer&& writer, int32_t value) {
   if ((value & ~0x7f) == 0) { // positive fixint
-    helper::msgpack_append_fmt(buffer, value & 0x7F);
+    writer.WriteByte(value & 0x7F);
   } else if ((value | 0x1F) == -1) { // negative fixint
-    helper::msgpack_append_fmt(buffer, value & 0xFF);
+    writer.WriteByte(value & 0xFF);
   } else if (value >= std::numeric_limits<int8_t>::min()
              && value <= std::numeric_limits<int8_t>::max()) { // 8bit signed int
-    msgpack_pack_int8(buffer, value & 0xFF);
+    helper::msgpack_append_fmt_and_integer(writer, 0xd0, (int8_t)(value & 0xFF));
   } else if (value >= std::numeric_limits<int16_t>::min()
              && value <= std::numeric_limits<int16_t>::max()) { // 16bit signed int
-    msgpack_pack_int16(buffer, value & 0xFFFF);
-  } else {
-    msgpack_pack_int32(buffer, value);
+    helper::msgpack_append_fmt_and_integer(writer, 0xd1, (int16_t)(value & 0xFFFF));
+  } else { // 32bit signed int
+    helper::msgpack_append_fmt_and_integer(writer, 0xd2, value);
   }
 }
 
-CPPLOG_INLINE void msgpack_pack_int_impl64(std::string& buffer, int64_t value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_int_impl64(Writer&& writer, int64_t value) {
   if (value >= std::numeric_limits<int>::min()
       && value <= std::numeric_limits<int>::max()) {
-    msgpack_pack_int_impl32(buffer, value & 0xFFFFFFFFFF);
-  } else {
-    msgpack_pack_int64(buffer, value);
+    msgpack_pack_int_impl32(writer, value & 0xFFFFFFFFFF);
+  } else { // 64 bit signed int
+    helper::msgpack_append_fmt_and_integer(writer, 0xd3, value);
   }
 }
 
-CPPLOG_INLINE void msgpack_pack_uint_impl32(std::string& buffer, uint32_t value) {
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_uint_impl32(Writer&& writer, uint32_t value) {
   if ((value & ~0x7f) == 0) { // positive fixint
-    helper::msgpack_append_fmt(buffer, value & 0x7F);
+    writer.WriteByte(value & 0x7F);
   } else if (value <= std::numeric_limits<uint8_t>::max()) { // 8bit unsigned int
-    msgpack_pack_uint8(buffer, value);
+    helper::msgpack_append_fmt_and_integer(writer, 0xcc,
+                                           static_cast<uint8_t>(value));
   } else if (value <= std::numeric_limits<uint16_t>::max()) { // 16bit unsigned int
-    msgpack_pack_uint16(buffer, value);
+    helper::msgpack_append_fmt_and_integer(writer, 0xcd,
+                                           static_cast<uint16_t>(value));
   } else {
-    msgpack_pack_uint32(buffer, value);
+    helper::msgpack_append_fmt_and_integer(writer, 0xce, value);
   }
 }
 
-CPPLOG_INLINE void msgpack_pack_uint_impl64(std::string& buffer, uint64_t value) {
-  if (value <= std::numeric_limits<unsigned int>::max()) { // 16bit unsigned int
-    msgpack_pack_uint_impl32(buffer, value);
+template<typename Writer>
+CPPLOG_INLINE void msgpack_pack_uint_impl64(Writer&& writer, uint64_t value) {
+  if (value <= std::numeric_limits<uint32_t>::max()) {
+    msgpack_pack_uint_impl32(writer, value);
   } else {
-    msgpack_pack_uint64(buffer, value);
+    // 64bit uint
+    helper::msgpack_append_fmt_and_integer(writer, 0xcf, value);
   }
 }
 
 /// msgpack_pack_int function
-template<typename T>
+template<typename Writer, typename T>
 CPPLOG_INLINE
 typename std::enable_if<
   // condition
@@ -185,15 +197,15 @@ typename std::enable_if<
   && helper::is_safe_integer_cast<T, int>::value,
   // return type
   void>::type
-  msgpack_pack_int(std::string& buffer, T value) {
+  msgpack_pack_int(Writer& writer, T value) {
   if (sizeof(int) == sizeof(int32_t)) {
-    msgpack_pack_int_impl32(buffer, value);
+    msgpack_pack_int_impl32(writer, value);
   } else if (sizeof(int) == sizeof(int64_t)) {
-    msgpack_pack_int_impl64(buffer, value);
+    msgpack_pack_int_impl64(writer, value);
   }
 }
 
-template<typename T>
+template<typename Writer, typename T>
 CPPLOG_INLINE
 typename std::enable_if<
   // condition
@@ -202,11 +214,11 @@ typename std::enable_if<
   && helper::is_safe_integer_cast<T, int64_t>::value,
   // return type
   void>::type
-  msgpack_pack_int(std::string& buffer, T value) {
-  msgpack_pack_int_impl64(buffer, value);
+  msgpack_pack_int(Writer& writer, T value) {
+  msgpack_pack_int_impl64(writer, value);
 }
 
-template<typename T>
+template<typename Writer, typename T>
 CPPLOG_INLINE
 typename std::enable_if<
   // condition
@@ -214,16 +226,15 @@ typename std::enable_if<
   && helper::is_safe_integer_cast<T, unsigned int>::value,
   // return type
   void>::type
-  msgpack_pack_int(std::string& buffer, T value) {
+  msgpack_pack_int(Writer& writer, T value) {
   if (sizeof(unsigned int) == sizeof(uint32_t)) {
-    msgpack_pack_uint_impl32(buffer, value);
+    msgpack_pack_uint_impl32(writer, value);
   } else if (sizeof(unsigned int) == sizeof(uint64_t)) {
-    assert(false);
-    //msgpack_pack_int_impl64(buffer, value);
+    msgpack_pack_int_impl64(writer, value);
   }
 }
 
-template<typename T>
+template<typename Writer, typename T>
 CPPLOG_INLINE
 typename std::enable_if<
   // condition
@@ -232,12 +243,8 @@ typename std::enable_if<
   && helper::is_safe_integer_cast<T, uint64_t>::value,
   // return type
   void>::type
-  msgpack_pack_int(std::string& buffer, T value) {
-  msgpack_pack_uint_impl64(buffer, value);
+  msgpack_pack_int(Writer& writer,  T value) {
+  msgpack_pack_uint_impl64(writer, value);
 }
-
-//CPPLOG_INLINE void msgpack_pack_int(std::string& buffer, int64_t value) {
-//  msgpack_pack_int_impl64(buffer, value);
-//}
 
 } // namespace cpplog
