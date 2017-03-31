@@ -9,7 +9,7 @@
 using namespace cpplog;
 using namespace fakeit;
 
-#define LOG_CAPTURE(sink) LogCapture(sink, LogLevel::info, __FILE__, __LINE__, __func__)
+#define LOG_CAPTURE(sink) LogCapture(sink, LogLevel::Information, __FILE__, __LINE__, __func__)
 
 struct TestSink : public LogSink, public LogRecord {
   void SubmitRecord(LogRecord& record) override {
@@ -162,7 +162,7 @@ TEST_CASE("logging macros") {
     }
 
     SECTION("Log With Level filtering") {
-        LogDispatcher::instance().EnableLevelAbove(LogLevel::error);
+        LogDispatcher::instance().EnableLevelAbove(LogLevel::Error);
         LOG(INFO, "hello, info level");
         REQUIRE(log_result.message() == "");
    }

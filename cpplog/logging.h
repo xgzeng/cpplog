@@ -27,7 +27,7 @@ public:
   bool HasLogSink(LogSink* sink);
 
 private:
-  LogLevel level_limit_ = LogLevel::info;
+  LogLevel level_limit_ = LogLevel::Information;
   std::vector<LogSink*> sinks_;
 };
 
@@ -82,11 +82,12 @@ CPPLOG_INLINE void SetLogToConsole(bool enable);
 #include "cpplog/logging-inl.h"
 
 /// macros
-constexpr cpplog::LogLevel LVL_DEBUG = cpplog::LogLevel::debug;
-constexpr cpplog::LogLevel LVL_INFO = cpplog::LogLevel::info;
-constexpr cpplog::LogLevel LVL_WARNING = cpplog::LogLevel::warning;
-constexpr cpplog::LogLevel LVL_ERROR = cpplog::LogLevel::error;
-constexpr cpplog::LogLevel LVL_FATAL = cpplog::LogLevel::fatal;
+constexpr cpplog::LogLevel LVL_TRACE   = cpplog::LogLevel::Trace;
+constexpr cpplog::LogLevel LVL_DEBUG   = cpplog::LogLevel::Debug;
+constexpr cpplog::LogLevel LVL_INFO    = cpplog::LogLevel::Information;
+constexpr cpplog::LogLevel LVL_WARNING = cpplog::LogLevel::Warning;
+constexpr cpplog::LogLevel LVL_ERROR   = cpplog::LogLevel::Error;
+constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
 
 #ifdef __GNUC__
   #define __FUNCTION_SIGNATURE__ __PRETTY_FUNCTION__

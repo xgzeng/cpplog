@@ -10,23 +10,6 @@
 
 namespace cpplog {
 
-CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
-                            const char* filename,
-                            const char* func,
-                            int line)
-: level_(level), file_name_(filename), func_(func), line_(line),
-  timestamp_{0, 0} {
-#ifdef _WIN32
-  timespec_get(&timestamp_, TIME_UTC);
-#else
-  struct timeval tv;
-  if (0 == gettimeofday(&tv, nullptr)) {
-    timestamp_.tv_sec = tv.tv_sec;
-    timestamp_.tv_nsec = tv.tv_usec * 1000;
-  }
-#endif
-}
-
 CPPLOG_INLINE bool LogDispatcher::IsEnabled(LogLevel level) const {
     return level >= level_limit_;
 }

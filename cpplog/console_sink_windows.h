@@ -14,12 +14,12 @@ namespace cpplog {
 
 CPPLOG_INLINE char LevelLetter(LogLevel l) {
   switch (l) {
-  case LogLevel::trace: return 'T';
-  case LogLevel::debug: return 'D';
-  case LogLevel::info: return 'I';
-  case LogLevel::warning: return 'W';
-  case LogLevel::error: return 'E';
-  case LogLevel::fatal: return 'F';
+  case LogLevel::Trace:       return 'T';
+  case LogLevel::Debug:       return 'D';
+  case LogLevel::Information: return 'I';
+  case LogLevel::Warning:     return 'W';
+  case LogLevel::Error:       return 'E';
+  case LogLevel::Fatal:       return 'F';
   default: return 'I';
   }
 }
