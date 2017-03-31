@@ -1,9 +1,7 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include "cpplog/utils.h"
 #include "cpplog/attachment.h"
-#include "cpplog/json_attachment.h"
 
 namespace cpplog {
 
@@ -76,10 +74,9 @@ private:
   const char* func_ = "";
   int line_ = 0;
   timespec timestamp_ = { 0 , 0 };
+
   JsonAttachment attachment_;
 };
 
 } // namespace cpplog
-
-#include "cpplog/record_inl.h"
 

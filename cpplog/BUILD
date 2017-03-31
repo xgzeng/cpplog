@@ -5,25 +5,16 @@ cc_library(
         "console_sink.h",
         "glog_sink.h",
         "hex.h",
-        "json_builder.h",
         "logging.h",
         "sink.h",
-        "record.h",
-        "attachment.h",
-        "msgpack_pack.h",
-        "msgpack_unpack.h",
-        "support_nlohmann_json.h"
     ],
     srcs = [
+        "record.h",
         "config.h",
-        "utils.h",
         "console_sink_unix.h",
         "console_sink_windows.h",
-        "json_builder_inl.h",
-        "json_attachment.h",
-        "attachment_inl.h",
+        "attachment.h",
         "logging-inl.h",
-        "record_inl.h"
     ],
     include_prefix = "cpplog",
     visibility = [

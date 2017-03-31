@@ -3,7 +3,6 @@
 #include "cpplog/config.h"
 #include "cpplog/sink.h"
 #include "cpplog/record.h"
-#include "cpplog/json_builder.h"
 #include <time.h>
 #include <sstream>
 #include "fmt/format.h"
