@@ -6,7 +6,7 @@ class CpplogConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     exports = "CMakeLists.txt", "cpplog*", "test*"
     requires = "fmt/3.0.0@memsharded/testing", \
-               "nlJson/2.0.1@arnemertz/testing"
+               "nlJson/2.1.0@xgzeng/testing"
     generators = "cmake"
     
     def run(self, cmd):

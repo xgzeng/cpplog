@@ -5,7 +5,6 @@ include_directories(..)
 set(UNITTEST_SRCS cpplog_unittest.cpp)
 
 add_executable(cpplog_unittest ${UNITTEST_SRCS})
-# target_compile_features(cpplog_unittest PUBLIC cxx_relaxed_constexpr)
 
 target_link_libraries(cpplog_unittest fmt)
 
