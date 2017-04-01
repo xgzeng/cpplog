@@ -74,14 +74,14 @@ public:
     // change line color
     WORD fg_color = 0;
     switch (r.level()) {
-    case LogLevel::warning:
+    case LogLevel::Warning:
       fg_color = FOREGROUND_RED;
       break;
-    case LogLevel::error:
-    case LogLevel::fatal:
+    case LogLevel::Error:
+    case LogLevel::Fatal:
       fg_color = FOREGROUND_RED | FOREGROUND_INTENSITY;
       break;
-    case LogLevel::info:
+    case LogLevel::Information:
     default:
       fg_color = FOREGROUND_GREEN;
     }
