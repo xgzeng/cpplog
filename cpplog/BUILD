@@ -2,19 +2,19 @@
 cc_library(
     name = "cpplog",
     hdrs = [
-        "console_sink.h",
-        "glog_sink.h",
+        "sinks/console_sink.h",
+        "sinks/glog_sink.h",
         "hex.h",
         "logging.h",
         "sink.h",
     ],
     srcs = [
-        "record.h",
         "config.h",
-        "console_sink_unix.h",
-        "console_sink_windows.h",
         "attachment.h",
+        "record.h",
         "logging-inl.h",
+        "sinks/console_sink_unix.h",
+        "sinks/console_sink_windows.h",
     ],
     include_prefix = "cpplog",
     visibility = [

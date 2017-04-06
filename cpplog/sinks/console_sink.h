@@ -3,9 +3,9 @@
 #include "cpplog/sink.h"
 
 #ifdef _WIN32
-#include <cpplog/console_sink_windows.h>
+#include "cpplog/sinks/console_sink_windows.h"
 #else
-#include "cpplog/console_sink_unix.h"
+#include "cpplog/sinks/console_sink_unix.h"
 #endif
 
 namespace cpplog {

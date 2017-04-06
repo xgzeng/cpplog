@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #endif
 
-#include "cpplog/console_sink.h"
+#include "cpplog/sinks/console_sink.h"
 
 namespace cpplog {
 
