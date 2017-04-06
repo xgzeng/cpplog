@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(cpplog CXX)
 
+option(CPPLOG_BUILD_TESTS "Build the unit tests" ON)
+
 set(CMAKE_CXX_STANDARD "11")
 
 set(CONAN_BUILD_FILE ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -13,10 +15,16 @@ if(EXISTS ${CONAN_BUILD_FILE})
  set(FMT_INCLUDE_DIR  ${CONAN_INCLUDE_DIRS_FMT})
 endif()
 
+### Build Test
+if (CPPLOG_BUILD_TESTS)
+
+enable_testing()
+
 if(NOT USE_CONAN_BUILD)
 add_subdirectory(third_party/fmt)
 set(FMT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/fmt)
 
+set(BuildTests OFF)
 add_subdirectory(third_party/json)
 set(JSON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/src)
 endif()
@@ -24,3 +32,6 @@ endif()
 enable_testing()
 
 add_subdirectory(test)
+
+endif(CPPLOG_BUILD_TESTS)
+
