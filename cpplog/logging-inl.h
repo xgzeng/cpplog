@@ -11,11 +11,11 @@
 namespace cpplog {
 
 CPPLOG_INLINE bool LogDispatcher::IsEnabled(LogLevel level) const {
-    return level >= level_limit_;
+  return level >= level_limit_;
 }
 
 CPPLOG_INLINE void LogDispatcher::EnableLevelAbove(LogLevel level) {
-    level_limit_ = level;
+  level_limit_ = level;
 }
 
 CPPLOG_INLINE void LogDispatcher::SubmitRecord(LogRecord& r) {
@@ -61,7 +61,7 @@ CPPLOG_INLINE void AddLogSink(LogSink* sink) {
 CPPLOG_INLINE void SetLogToConsole(bool enable) {
   if (enable) {
     if (!LogDispatcher::instance().HasLogSink(console_sink())) {
-        LogDispatcher::instance().AddLogSink(console_sink());
+      LogDispatcher::instance().AddLogSink(console_sink());
     }
   } else {
     LogDispatcher::instance().RemoveLogSink(console_sink());

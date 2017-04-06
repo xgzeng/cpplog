@@ -38,6 +38,7 @@ public:
 
   LogCapture(LogSink& sink, LogLevel level, const char* filename,
              int line, const char* func);
+
   ~LogCapture();
 
   template<typename T>
