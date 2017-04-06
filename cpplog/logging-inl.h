@@ -18,7 +18,7 @@ CPPLOG_INLINE void LogDispatcher::EnableLevelAbove(LogLevel level) {
   level_limit_ = level;
 }
 
-CPPLOG_INLINE void LogDispatcher::SubmitRecord(LogRecord& r) {
+CPPLOG_INLINE void LogDispatcher::SubmitRecord(const LogRecord& r) {
   for (auto s : sinks_) {
     s->SubmitRecord(r);
   }

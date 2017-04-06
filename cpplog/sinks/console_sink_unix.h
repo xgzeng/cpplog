@@ -18,7 +18,7 @@ CPPLOG_INLINE char LevelLetter(LogLevel l) {
 
 class ConsoleSinkUnix : public LogSink {
 public:
-  void SubmitRecord(LogRecord& r) override {
+  void SubmitRecord(const LogRecord& r) override {
     struct tm tm_local {};
     localtime_r(&r.timestamp().tv_sec, &tm_local);
 

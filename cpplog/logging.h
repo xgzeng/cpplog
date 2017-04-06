@@ -18,7 +18,7 @@ public:
 
   void EnableLevelAbove(LogLevel level);
 
-  void SubmitRecord(LogRecord& record) override;
+  void SubmitRecord(const LogRecord& record) override;
 
   void AddLogSink(LogSink* sink);
 

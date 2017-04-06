@@ -11,7 +11,7 @@ class LogRecord;
 
 class LogSink {
 public:
-  virtual void SubmitRecord(LogRecord&) = 0;
+  virtual void SubmitRecord(const LogRecord&) = 0;
 
 protected:
   ~LogSink() = default;

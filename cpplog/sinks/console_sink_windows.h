@@ -63,7 +63,7 @@ public:
   ConsoleSinkWindows() {
   }
 
-  void SubmitRecord(LogRecord& r) override {
+  void SubmitRecord(const LogRecord& r) override {
     struct tm tm_local {};
     localtime_s(&tm_local, &r.timestamp().tv_sec);
 

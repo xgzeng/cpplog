@@ -12,7 +12,7 @@ using namespace fakeit;
 #define LOG_CAPTURE(sink) LogCapture(sink, LogLevel::Information, __FILE__, __LINE__, __func__)
 
 struct TestSink : public LogSink, public LogRecord {
-  void SubmitRecord(LogRecord& record) override {
+  void SubmitRecord(const LogRecord& record) override {
     (LogRecord&)(*this) = record;
   }
 
