@@ -16,7 +16,7 @@ class SocketHandle {
   static const HANDLE_TYPE INVALID_VALUE = INVALID_SOCKET;
 #else
   typedef int HANDLE_TYPE;
-  static const HANDLE_TYPE INVALID_HANDLE = -1;
+  static const HANDLE_TYPE INVALID_VALUE = -1;
 #endif
 
 public:

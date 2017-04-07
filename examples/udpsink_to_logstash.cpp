@@ -1,6 +1,8 @@
 #include "cpplog/logging.h"
 #include "cpplog/sinks/udp_sink.h"
 
+#include <thread>
+
 using namespace cpplog;
 
 int main(int argc, char* argv[]) {
