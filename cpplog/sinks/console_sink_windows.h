@@ -67,10 +67,6 @@ public:
     struct tm tm_local {};
     localtime_s(&tm_local, &r.timestamp().tv_sec);
 
-    const char* base_filename = strrchr(r.file_name(), '/');
-    if (!base_filename) base_filename = strrchr(r.file_name(), '\\');
-    base_filename = base_filename ? base_filename + 1 : r.file_name();
-
     // change line color
     WORD fg_color = 0;
     switch (r.level()) {
@@ -90,6 +86,8 @@ public:
 
     using std::setw;
     using std::setfill;
+    auto& src_file_info = r.source_file_info();
+
     std::cout << LevelLetter(r.level())
       << setfill('0')
       << setw(2) << 1 + tm_local.tm_mon
@@ -99,8 +97,9 @@ public:
       << setw(2) << tm_local.tm_min << ':'
       << setw(2) << tm_local.tm_sec << '.'
       << setw(4) << (r.timestamp().tv_nsec / 1000000)
-      << ' '
-      << base_filename << ':' << r.line() << ':' << r.function_name() << "] "
+      << ' ' << src_file_info.base_file_name()
+      << ':' << src_file_info.line()
+      << ':' << src_file_info.function_name() << "] "
       << Utf8ToMultibyteString(r.message());
 
     std::cout << std::endl;

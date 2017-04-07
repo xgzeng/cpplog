@@ -10,7 +10,7 @@
 
 namespace cpplog {
 
-CPPLOG_INLINE bool LogDispatcher::IsEnabled(LogLevel level) const {
+CPPLOG_INLINE bool LogDispatcher::is_level_enabled(LogLevel level) const {
   return level >= level_limit_;
 }
 
@@ -25,16 +25,22 @@ CPPLOG_INLINE void LogDispatcher::SubmitRecord(const LogRecord& r) {
 }
 
 CPPLOG_INLINE void LogDispatcher::AddLogSink(LogSink* sink) {
-  sinks_.push_back(sink);
+  LogSinkPtr p_sink {sink, [](LogSink*){}};
+  sinks_.push_back(p_sink);
 }
 
 CPPLOG_INLINE void LogDispatcher::RemoveLogSink(LogSink* sink) {
-  sinks_.erase(std::remove(sinks_.begin(), sinks_.end(), sink),
-               sinks_.end());
+  auto p = std::remove_if(sinks_.begin(), sinks_.end(),
+      [sink](const LogSinkPtr& p) { return p.get() == sink; });
+
+  sinks_.erase(p, sinks_.end());
 }
 
 CPPLOG_INLINE bool LogDispatcher::HasLogSink(LogSink* sink) {
-  return std::find(sinks_.begin(), sinks_.end(), sink) != sinks_.end();
+  auto found = std::find_if(sinks_.begin(), sinks_.end(),
+      [sink](const LogSinkPtr& p) { return p.get() == sink; });
+
+  return  found != sinks_.end();
 }
 
 CPPLOG_INLINE ConsoleSink* console_sink() {
@@ -69,17 +75,14 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
 }
 
 // LogCapturer
-CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const char* filename,
-                                     int line, const char* func)
-: record_(level, filename, func, line), sink_(LogDispatcher::instance()) {
+CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const SourceFileInfo& src_file_info)
+: record_(level, src_file_info), sink_(LogDispatcher::instance()) {
 }
 
 CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
                                      LogLevel level,
-                                     const char* filename,
-                                     int line,
-                                     const char* func)
-: record_(level, filename, func, line), sink_(s) {
+                                     const SourceFileInfo& src_file_info)
+: record_(level, src_file_info), sink_(s) {
 }
 
 CPPLOG_INLINE LogCapture::~LogCapture() {
@@ -87,5 +90,5 @@ CPPLOG_INLINE LogCapture::~LogCapture() {
   sink_.SubmitRecord(record_);
 }
 
-}
+} // namespace cpplog
 

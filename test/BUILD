@@ -11,8 +11,6 @@ cc_test(
     ],
     deps = [
         "//cpplog:cpplog",
-        "@fmtlib//:fmt",
-        "@nlohmann_json//:json"
     ]
 )
 

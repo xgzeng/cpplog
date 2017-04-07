@@ -17,10 +17,8 @@ public:
   : json_value_(json::object()) {
   }
 
-  // add integer property
-  template<typename T>
-  void add(string_view name, T&& value) {
-    json_value_[std::string(name)] = value;
+  json to_json() const {
+    return json_value_;
   }
 
 private:

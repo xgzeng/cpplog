@@ -14,7 +14,7 @@ class LogDispatcher : public LogSink {
 public:
   static LogDispatcher& instance();
 
-  bool IsEnabled(LogLevel level) const;
+  bool is_level_enabled(LogLevel level) const override;
 
   void EnableLevelAbove(LogLevel level);
 
@@ -26,18 +26,23 @@ public:
 
   bool HasLogSink(LogSink* sink);
 
+  template<typename T, typename... ConstructorArgs>
+  void AddSink(ConstructorArgs... args) {
+    auto p = std::make_shared<T>(std::forward<ConstructorArgs>(args)...);
+    sinks_.push_back(p);
+  }
+
 private:
+  typedef std::shared_ptr<LogSink> LogSinkPtr;
   LogLevel level_limit_ = LogLevel::Information;
-  std::vector<LogSink*> sinks_;
+  std::vector<LogSinkPtr> sinks_;
 };
 
 class LogCapture {
 public:
-  LogCapture(LogLevel level, const char* filename,
-             int line, const char* func);
+  LogCapture(LogLevel level, const SourceFileInfo&);
 
-  LogCapture(LogSink& sink, LogLevel level, const char* filename,
-             int line, const char* func);
+  LogCapture(LogSink& sink, LogLevel level, const SourceFileInfo&);
 
   ~LogCapture();
 
@@ -60,10 +65,7 @@ public:
   // capture log record properties
   template<typename T>
   LogCapture& operator()(string_view name, T&& value) {
-    //JsonBuilder jb;
-    // dump(jb, std::forward<T>(value));
-    // jb.ExtractString()
-    record_.attachment().add(name, std::forward<T>(value));
+    record_.add_field(name, std::forward<T>(value));
     return *this;
   }
 
@@ -98,13 +100,21 @@ constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
   #define __FUNCTION_SIGNATURE__ ""
 #endif
 
-#define LOG(level, fmt, ...) \
-    if (cpplog::LogDispatcher::instance().IsEnabled(LVL_##level)) \
-        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
+#define LOG_TO(sink, level, fmt, ...) \
+  if (sink.is_level_enabled(LVL_##level)) \
+    cpplog::LogCapture(sink, LVL_##level, {__FILE__, __func__, __LINE__})  \
             .message(fmt, ##__VA_ARGS__)
 
-#define LOG_IF(level, condition, fmt, ...) \
-    if (condition && cpplog::LogDispatcher::instance().IsEnabled(LVL_##level))  \
-        cpplog::LogCapture(LVL_##level, __FILE__, __LINE__, __func__)  \
-            .message(fmt, ##__VA_ARGS__)
+#define LOG(level, fmt, ...) \
+  LOG_TO(cpplog::LogDispatcher::instance(), level, fmt, ##__VA_ARGS__)
+
+#define LOG_TO_IF(condition, ...) \
+  if (condition) LOG_TO(##__VA_ARGS__)
+
+//#define LOG(level, fmt, ...) \
+//  if ().is_level_enabled(LVL_##level)) \
+//    cpplog::LogCapture(LVL_##level, {__FILE__, __func__, __LINE__})  \
+//            .message(fmt, ##__VA_ARGS__)
+
+#define LOG_IF(condition, ...) if (condition) LOG(##__VA_ARGS__)
 

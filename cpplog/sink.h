@@ -1,16 +1,16 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include <string>
-#include <time.h>
-#include <vector>
+#include "cpplog/record.h"
 
 namespace cpplog {
 
-class LogRecord;
-
 class LogSink {
 public:
+  virtual bool is_level_enabled(LogLevel level) const {
+    return true;
+  }
+
   virtual void SubmitRecord(const LogRecord&) = 0;
 
 protected:

@@ -1,6 +1,7 @@
 #pragma once
 #include "cpplog/config.h"
 #include "cpplog/sink.h"
+#include <iomanip> // std::setw etc.
 
 namespace cpplog {
 
@@ -22,8 +23,7 @@ public:
     struct tm tm_local {};
     localtime_r(&r.timestamp().tv_sec, &tm_local);
 
-    const char* base_filename = strrchr(r.file_name(), '/');
-    base_filename = base_filename ? base_filename + 1 : r.file_name();
+    auto& src_file_info = r.src_file_info();
 
     using std::setw;
     using std::setfill;
@@ -38,7 +38,8 @@ public:
         << setw(2) << tm_local.tm_sec << '.'
         << setw(4) << (r.timestamp().tv_nsec / 1000000)
         << ' '
-        << base_filename << ':' << r.line() << ':' << r.function_name() << "] "
+        << src_file_info.base_file_name() << ':' << src_file_info.line()
+        << ':' << src_file_info.function_name() << "] "
         << r.message()
         << "\033[m" << std::endl;
   }
