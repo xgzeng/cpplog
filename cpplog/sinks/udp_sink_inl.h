@@ -1,15 +1,30 @@
 #pragma once
+
+#ifdef WIN32
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#else
 #include <sys/socket.h> // socket
 #include <netinet/in.h> // sockaddr_in
-#include <arpa/inet.h>  // inet_addr
+#include <arpa/inet.h>  // inet_pton
+#endif
+
 #include "fmt/time.h"
+
+#ifdef WIN32
+#define THROW_SOCKET_SYSTEM_ERROR() \
+  throw std::system_error(WSAGetLastError(), std::generic_category())
+#else
+#define THROW_SOCKET_SYSTEM_ERROR() \
+  throw std::system_error(errno, std::generic_category())
+#endif
 
 namespace cpplog {
 
 CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
   SocketHandle sock(socket(PF_INET, SOCK_DGRAM, 0));
   if (!sock) {
-    throw std::system_error(errno, std::generic_category());
+    THROW_SOCKET_SYSTEM_ERROR();
   }
 
   // parse addr
@@ -34,10 +49,19 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
   memset(&saddr, 0, sizeof(saddr));
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons(port);
-  saddr.sin_addr.s_addr = inet_addr(ip.c_str());
+
+#ifdef WIN32
+  if (!InetPton(AF_INET, ip.c_str(), &saddr.sin_addr.s_addr)) {
+    THROW_SOCKET_SYSTEM_ERROR();
+  }
+#else
+  if (!inet_pton(AF_INET, ip.c_str(), &saddr.sin_addr.s_addr)) {
+    THROW_SOCKET_SYSTEM_ERROR();
+  }
+#endif
 
   if (connect(sock.get(), (const sockaddr*)&saddr, sizeof(saddr)) != 0) {
-    throw std::system_error(errno, std::generic_category());
+    THROW_SOCKET_SYSTEM_ERROR();
   }
 
   sock_ = std::move(sock);
@@ -45,7 +69,11 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
 
 CPPLOG_INLINE std::string to_iso8601(timespec ts) {
   struct tm result;
+#ifdef WIN32
+  gmtime_s(&result, &ts.tv_sec);
+#else
   gmtime_r(&ts.tv_sec, &result);
+#endif
   return fmt::format("{:%FT%T}.{:03}Z", result, ts.tv_nsec/1000/1000); //  / (1000 * 1000)
 }
 

@@ -60,7 +60,7 @@ public:
   }
 
   size_t find_first_of(char c, size_t pos = 0) const {
-    pos = std::min(pos, data_size_);
+    pos = pos < data_size_ ? pos : data_size_;
     for (auto p = data_ + pos; p != (data_ + data_size_); ++p) {
       if (*p == c) {
         return p - data_;
@@ -71,7 +71,8 @@ public:
 
   string_view substr(size_t pos = 0, size_t count = npos) {
     if (pos > data_size_) throw std::out_of_range("string_view.substr() out of range");
-    return string_view(data_ + pos, std::min(count, size() - pos));
+    size_t rcount = count < size() - pos ? count : size() - pos;
+    return string_view(data_ + pos, rcount);
   }
 
 private:

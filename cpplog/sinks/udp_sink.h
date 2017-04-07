@@ -2,20 +2,34 @@
 
 #include "cpplog/sink.h"
 
-#ifndef WIN32
+#ifdef WIN32
+#include <WinSock2.h>
+#else
 #include <unistd.h> // close
 #endif
 
 namespace cpplog {
 
 class SocketHandle {
-public:
-  SocketHandle() : fd_(-1) {}
+#ifdef WIN32
+  typedef SOCKET HANDLE_TYPE;
+  static const HANDLE_TYPE INVALID_VALUE = INVALID_SOCKET;
+#else
+  typedef int HANDLE_TYPE;
+  static const HANDLE_TYPE INVALID_HANDLE = -1;
+#endif
 
-  SocketHandle(int fd) : fd_(fd) {}
+public:
+  SocketHandle() : fd_(INVALID_VALUE) {}
+
+  SocketHandle(HANDLE_TYPE fd) : fd_(fd) {}
 
   ~SocketHandle() {
-    if (fd_ != -1) close(fd_);
+#ifdef WIN32
+    if (fd_ != INVALID_VALUE) closesocket(fd_);
+#else
+    if (fd_ != INVALID_VALUE) close(fd_);
+#endif
   }
 
   // uncopyable
@@ -30,7 +44,7 @@ public:
   // moveable
   SocketHandle(SocketHandle&& other)
   : fd_(other.fd_) {
-    other.fd_ = -1;
+    other.fd_ = INVALID_VALUE;
   }
 
   SocketHandle& operator=(SocketHandle&& other) {
@@ -41,15 +55,15 @@ public:
   }
 
   explicit operator bool () const {
-    return fd_ != -1;
+    return fd_ != INVALID_VALUE;
   }
 
-  int get() const {
+  HANDLE_TYPE get() const {
     return fd_;
   }
 
 private:
-  int fd_;
+  HANDLE_TYPE fd_;
 };
 
 class UdpSink : public LogSink {

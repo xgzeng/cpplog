@@ -4,6 +4,14 @@
 using namespace cpplog;
 
 int main(int argc, char* argv[]) {
+#ifdef WIN32
+  WSADATA wsaData = { 0 };
+  if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+    printf("WSAStartup failed\n");
+    return 1;
+  }
+#endif
+
   printf("Start logstash at localhost with following command to receive log event:\n"
          "logstash -e \"input { udp { port => 1234 codec => json {} } } output { stdout {}}\"\n\n");
 
@@ -11,8 +19,7 @@ int main(int argc, char* argv[]) {
 
   for (int i = 0; i < 1000; ++i) {
     LOG(INFO, "message {}", i);
-    sleep(5); // seconds
+    std::this_thread::sleep_for(std::chrono::seconds(5)); // seconds
   }
   return 0;
 }
-

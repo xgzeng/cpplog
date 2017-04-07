@@ -7,4 +7,7 @@ add_executable(udpsink_to_logstash
 
 target_link_libraries(udpsink_to_logstash fmt)
 
+if(WIN32)
+	target_link_libraries(udpsink_to_logstash Ws2_32)
+endif()
 

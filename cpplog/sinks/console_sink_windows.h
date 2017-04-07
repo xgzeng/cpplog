@@ -86,7 +86,7 @@ public:
 
     using std::setw;
     using std::setfill;
-    auto& src_file_info = r.source_file_info();
+    auto& src_file_info = r.src_file_info();
 
     std::cout << LevelLetter(r.level())
       << setfill('0')
