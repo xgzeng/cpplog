@@ -2,7 +2,8 @@
 
 #define CPPLOG_INLINE inline
 
-#include <string>
+#include <string>  // strlen
+#include <cstring>
 #include <stdexcept>
 
 namespace cpplog {
