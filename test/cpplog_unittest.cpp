@@ -92,11 +92,11 @@ TEST_CASE("logging macros") {
   }
 
   SECTION("LOG_IF") {
-    LOG_IF(true, INFO, "");
+    LOG_IF(INFO, true, "");
 
-    LOG_IF(true, ERROR, "");
+    LOG_IF(ERROR, true, "");
 
-    LOG_TO_IF(log_result, true, ERROR, "test");
+    LOG_TO_IF(log_result, ERROR, true, "test");
     REQUIRE(log_result.message() == "test");
   }
 }

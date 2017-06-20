@@ -111,9 +111,9 @@ constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
 #define LOG(level, fmt, ...) \
   LOG_TO_IMPL(cpplog::LogDispatcher::instance(), LVL_##level, fmt, ##__VA_ARGS__)
 
-#define LOG_TO_IF(sink, condition, level, fmt, ...) \
+#define LOG_TO_IF(sink, level, condition,  fmt, ...) \
   if (condition) LOG_TO_IMPL(sink, LVL_##level, fmt, ##__VA_ARGS__)
 
-#define LOG_IF(condition, level, fmt, ...) \
+#define LOG_IF(level, condition, fmt, ...) \
   if (condition) LOG_TO_IMPL(cpplog::LogDispatcher::instance(), \
     LVL_##level, fmt, ##__VA_ARGS__)
