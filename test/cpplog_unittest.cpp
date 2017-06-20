@@ -3,13 +3,10 @@
 #include "cpplog/logging.h"
 #include "cpplog/sinks/console_sink.h"
 #include "cpplog/hex.h"
-
 #include "fakeit.hpp"
 
 using namespace cpplog;
 using namespace fakeit;
-
-#define LOG_CAPTURE(sink) LOG_TO(sink, INFO, "")
 
 struct TestSink : public LogSink, public LogRecord {
   void SubmitRecord(const LogRecord& record) override {
@@ -30,16 +27,16 @@ std::ostream& operator << (std::ostream& os, StreamableObject o) {
 }
 
 TEST_CASE("LogCapture stream interface") {
-  LOG_CAPTURE(log_result);
+  LOG_TO(log_result, INFO, "");
   REQUIRE(log_result.message() == "");
 
-  LOG_CAPTURE(log_result) << 1;
+  LOG_TO(log_result, ERROR, "") << 1;
   REQUIRE(log_result.message() == "1");
 
-  LOG_CAPTURE(log_result) << 1 << "hello";
+  LOG_TO(log_result, WARNING, "") << 1 << "hello";
   REQUIRE(log_result.message() == "1hello");
 
-  LOG_CAPTURE(log_result) << 1 << "hello" << StreamableObject{2};
+  LOG_TO(log_result, FATAL, "") << 1 << "hello" << StreamableObject{2};
   REQUIRE(log_result.message() == "1hello2");
 }
 
@@ -48,12 +45,17 @@ TEST_CASE("LogCapture format interface") {
   REQUIRE(log_result.message() == "");
 
   LOG_TO(log_result, INFO, "{}", 1);
+
   REQUIRE(log_result.message() == "1");
 
-  LOG_TO(log_result, INFO, "{}{}{}", 1, "hello", StreamableObject{2});
+  LOG_TO(log_result, INFO,
+        "{}{}{}", 1, "hello", StreamableObject{2});
+
   REQUIRE(log_result.message() == "1hello2");
 
-  LOG_TO(log_result, INFO, "{}{}", 1, "hello") << StreamableObject{2};
+  LOG_TO(log_result, INFO,
+        "{}{}", 1, "hello") << StreamableObject{2};
+
   REQUIRE(log_result.message() == "1hello2");
 }
 
@@ -67,25 +69,34 @@ TEST_CASE("cpplog hexify") {
   REQUIRE(log_result.message() == "01 00 FF");
 
   std::vector<uint8_t> vec_uint8{ 0, 16, 0xFF};
-  LOG_TO(log_result, INFO, "{}", hexify(vec_uint8));
+  LOG_TO(log_result, INFO,  "{}", hexify(vec_uint8));
   REQUIRE(log_result.message() == "00 10 FF");
 }
 
 TEST_CASE("logging macros") {
-    SetLogToConsole(false);
-    AddLogSink(&log_result);
+  SetLogToConsole(false);
+  AddLogSink(&log_result);
 
-    log_result.reset();
+  log_result.reset();
+  REQUIRE(log_result.message() == "");
+
+  SECTION("Use Macro To Log") {
+    LOG(INFO, "hello, macros");
+    REQUIRE(log_result.message() == "hello, macros");
+  }
+
+  SECTION("Log With Level filtering") {
+    LogDispatcher::instance().EnableLevelAbove(LogLevel::Error);
+    LOG(INFO, "hello, info level");
     REQUIRE(log_result.message() == "");
+  }
 
-    SECTION("Use Macro To Log") {
-        LOG(INFO, "hello, macros");
-        REQUIRE(log_result.message() == "hello, macros");
-    }
+  SECTION("LOG_IF") {
+    LOG_IF(true, INFO, "");
 
-    SECTION("Log With Level filtering") {
-        LogDispatcher::instance().EnableLevelAbove(LogLevel::Error);
-        LOG(INFO, "hello, info level");
-        REQUIRE(log_result.message() == "");
-   }
+    LOG_IF(true, ERROR, "");
+
+    LOG_TO_IF(log_result, true, ERROR, "test");
+    REQUIRE(log_result.message() == "test");
+  }
 }

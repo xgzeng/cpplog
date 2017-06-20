@@ -100,21 +100,20 @@ constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
   #define __FUNCTION_SIGNATURE__ ""
 #endif
 
-#define LOG_TO(sink, level, fmt, ...) \
-  if (sink.is_level_enabled(LVL_##level)) \
-    cpplog::LogCapture(sink, LVL_##level, {__FILE__, __func__, __LINE__})  \
+#define LOG_TO_IMPL(sink, level, fmt, ...) \
+  if (sink.is_level_enabled(level))   \
+    cpplog::LogCapture(sink, level, {__FILE__, __func__, __LINE__})  \
             .message(fmt, ##__VA_ARGS__)
 
+#define LOG_TO(sink, level, fmt, ...) \
+    LOG_TO_IMPL(sink, LVL_##level, fmt, ##__VA_ARGS__)
+
 #define LOG(level, fmt, ...) \
-  LOG_TO(cpplog::LogDispatcher::instance(), level, fmt, ##__VA_ARGS__)
+  LOG_TO_IMPL(cpplog::LogDispatcher::instance(), LVL_##level, fmt, ##__VA_ARGS__)
 
-#define LOG_TO_IF(condition, ...) \
-  if (condition) LOG_TO(##__VA_ARGS__)
+#define LOG_TO_IF(sink, condition, level, fmt, ...) \
+  if (condition) LOG_TO_IMPL(sink, LVL_##level, fmt, ##__VA_ARGS__)
 
-//#define LOG(level, fmt, ...) \
-//  if ().is_level_enabled(LVL_##level)) \
-//    cpplog::LogCapture(LVL_##level, {__FILE__, __func__, __LINE__})  \
-//            .message(fmt, ##__VA_ARGS__)
-
-#define LOG_IF(condition, ...) if (condition) LOG(##__VA_ARGS__)
-
+#define LOG_IF(condition, level, fmt, ...) \
+  if (condition) LOG_TO_IMPL(cpplog::LogDispatcher::instance(), \
+    LVL_##level, fmt, ##__VA_ARGS__)
