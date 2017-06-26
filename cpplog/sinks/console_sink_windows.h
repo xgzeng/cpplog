@@ -12,18 +12,6 @@
 
 namespace cpplog {
 
-CPPLOG_INLINE char LevelLetter(LogLevel l) {
-  switch (l) {
-  case LogLevel::Trace:       return 'T';
-  case LogLevel::Debug:       return 'D';
-  case LogLevel::Information: return 'I';
-  case LogLevel::Warning:     return 'W';
-  case LogLevel::Error:       return 'E';
-  case LogLevel::Fatal:       return 'F';
-  default: return 'I';
-  }
-}
-
 // wrap windows MultiByteToWideChar
 inline int MultiByteToWideChar2(UINT CodePage, DWORD dwFlags, const std::string& ns, std::wstring& ws) {
   return MultiByteToWideChar(CodePage, dwFlags,
@@ -58,12 +46,13 @@ inline std::string Utf8ToMultibyteString(const std::string& s) {
 }
 
 class ConsoleSinkWindows : public LogSink {
-  HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 public:
-  ConsoleSinkWindows() {
+  ConsoleSinkWindows()
+  : hConsole(GetStdHandle(STD_OUTPUT_HANDLE)) {
   }
 
   void SubmitRecord(const LogRecord& r) override {
+    std::lock_guard<std::mutex> guard(mutex_);
     struct tm tm_local {};
     localtime_s(&tm_local, &r.timestamp().tv_sec);
 
@@ -85,6 +74,10 @@ public:
     SetConsoleTextAttribute(hConsole, fg_color);
     std::cout << Utf8ToMultibyteString(FormatAsText(r)) << std::endl;
   }
+
+private:
+  HANDLE hConsole;
+  std::mutex mutex_;
 };
 
 } // namespace cpplog

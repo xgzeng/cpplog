@@ -8,11 +8,13 @@ namespace cpplog {
 class ConsoleSinkUnix : public LogSink {
 public:
   void SubmitRecord(const LogRecord& r) override {
+    std::lock_guard<std::mutex> guard(mutex_);
     std::cout << "\033[0;3" << (int)SeverityColor(r.level()) << 'm'
         << FormatAsText(r) << "\033[m" << std::endl;
   }
 
 private:
+  std::mutex mutex_;
   //enum DisplayMode {
   //  RESET     = 0,  // Reset All Attributes (return to normal mode)
   //  BRIGHT    = 1,  // Bright (usually turns on BOLD)
