@@ -83,26 +83,7 @@ public:
     }
 
     SetConsoleTextAttribute(hConsole, fg_color);
-
-    using std::setw;
-    using std::setfill;
-    auto& src_file_info = r.src_file_info();
-
-    std::cout << LevelLetter(r.level())
-      << setfill('0')
-      << setw(2) << 1 + tm_local.tm_mon
-      << setw(2) << tm_local.tm_mday
-      << ' '
-      << setw(2) << tm_local.tm_hour << ':'
-      << setw(2) << tm_local.tm_min << ':'
-      << setw(2) << tm_local.tm_sec << '.'
-      << setw(4) << (r.timestamp().tv_nsec / 1000000)
-      << ' ' << src_file_info.base_file_name()
-      << ':' << src_file_info.line()
-      << ':' << src_file_info.function_name() << "] "
-      << Utf8ToMultibyteString(r.message());
-
-    std::cout << std::endl;
+    std::cout << Utf8ToMultibyteString(FormatAsText(r)) << std::endl;
   }
 };
 

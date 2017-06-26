@@ -1,6 +1,7 @@
-set(UNITTEST_SRCS cpplog_unittest.cpp)
-
-add_executable(cpplog_unittest ${UNITTEST_SRCS})
+add_executable(cpplog_unittest
+    cpplog_unittest.cpp
+    file_sink_test.cpp
+)
 
 target_link_libraries(cpplog_unittest cpplog)
 

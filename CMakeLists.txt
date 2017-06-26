@@ -4,8 +4,6 @@ project(cpplog CXX)
 option(CPPLOG_BUILD_TESTS "Build unit tests" ON)
 option(CPPLOG_BUILD_EXAMPLES "Build examples" ON)
 
-set(CMAKE_CXX_STANDARD "11")
-
 set(CONAN_BUILD_FILE ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 if(EXISTS ${CONAN_BUILD_FILE})
     message("Using Conan")
@@ -28,7 +26,14 @@ endif()
 ### cpplog library
 add_library(cpplog INTERFACE)
 target_include_directories(cpplog INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(cpplog INTERFACE fmt nlohmann_json)
+target_link_libraries(cpplog
+  INTERFACE
+    fmt
+    nlohmann_json
+    # link to pthread is required to use std::call_once
+    $<$<CXX_COMPILER_ID:GNU>: pthread>
+)
+target_compile_features(cpplog INTERFACE cxx_auto_type) # c++11 is required
 
 ### Examples
 if (CPPLOG_BUILD_EXAMPLES)

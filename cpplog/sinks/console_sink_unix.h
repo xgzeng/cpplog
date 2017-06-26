@@ -5,43 +5,11 @@
 
 namespace cpplog {
 
-CPPLOG_INLINE char LevelLetter(LogLevel l) {
-  switch (l) {
-  case LogLevel::Trace: return 'T';
-  case LogLevel::Debug: return 'D';
-  case LogLevel::Information: return 'I';
-  case LogLevel::Warning: return 'W';
-  case LogLevel::Error: return 'E';
-  case LogLevel::Fatal: return 'F';
-  default: return 'I';
-  }
-}
-
 class ConsoleSinkUnix : public LogSink {
 public:
   void SubmitRecord(const LogRecord& r) override {
-    struct tm tm_local {};
-    localtime_r(&r.timestamp().tv_sec, &tm_local);
-
-    auto& src_file_info = r.src_file_info();
-
-    using std::setw;
-    using std::setfill;
     std::cout << "\033[0;3" << (int)SeverityColor(r.level()) << 'm'
-        << LevelLetter(r.level())
-        << setfill('0')
-        << setw(2) << 1 + tm_local.tm_mon
-        << setw(2) << tm_local.tm_mday
-        << ' '
-        << setw(2) << tm_local.tm_hour << ':'
-        << setw(2) << tm_local.tm_min << ':'
-        << setw(2) << tm_local.tm_sec << '.'
-        << setw(4) << (r.timestamp().tv_nsec / 1000000)
-        << ' '
-        << src_file_info.base_file_name() << ':' << src_file_info.line()
-        << ':' << src_file_info.function_name() << "] "
-        << r.message()
-        << "\033[m" << std::endl;
+        << FormatAsText(r) << "\033[m" << std::endl;
   }
 
 private:

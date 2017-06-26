@@ -54,7 +54,6 @@ CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
   std::call_once(once, [&](){
     global_instance.AddLogSink(console_sink());
   });
-
   return global_instance;
 };
 
@@ -91,4 +90,3 @@ CPPLOG_INLINE LogCapture::~LogCapture() {
 }
 
 } // namespace cpplog
-
