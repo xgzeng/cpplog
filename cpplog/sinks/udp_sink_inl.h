@@ -77,7 +77,7 @@ CPPLOG_INLINE std::string to_iso8601(timespec ts) {
   return fmt::format("{:%FT%T}.{:03}Z", result, ts.tv_nsec/1000/1000); //  / (1000 * 1000)
 }
 
-CPPLOG_INLINE void UdpSink::SubmitRecord(const LogRecord& record) {
+CPPLOG_INLINE void UdpSink::Submit(const LogRecord& record) {
   json j = record.fields();
   j["@timestamp"] = to_iso8601(record.timestamp());
   j["@version"] = "1";
@@ -89,4 +89,3 @@ CPPLOG_INLINE void UdpSink::SubmitRecord(const LogRecord& record) {
 }
 
 } // namespace cpplog
-

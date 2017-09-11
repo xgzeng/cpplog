@@ -51,7 +51,7 @@ public:
   : hConsole(GetStdHandle(STD_OUTPUT_HANDLE)) {
   }
 
-  void SubmitRecord(const LogRecord& r) override {
+  void Submit(const LogRecord& r) override {
     std::lock_guard<std::mutex> guard(mutex_);
     struct tm tm_local {};
     localtime_s(&tm_local, &r.timestamp().tv_sec);

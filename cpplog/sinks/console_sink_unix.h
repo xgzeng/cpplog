@@ -7,7 +7,7 @@ namespace cpplog {
 
 class ConsoleSinkUnix : public LogSink {
 public:
-  void SubmitRecord(const LogRecord& r) override {
+  void Submit(const LogRecord& r) override {
     std::lock_guard<std::mutex> guard(mutex_);
     std::cout << "\033[0;3" << (int)SeverityColor(r.level()) << 'm'
         << FormatAsText(r) << "\033[m" << std::endl;

@@ -55,7 +55,7 @@ CPPLOG_INLINE const std::string& FileSink::current_logfile_path() const {
   return current_logfile_path_;
 }
 
-CPPLOG_INLINE void FileSink::SubmitRecord(const LogRecord& r) {
+CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
   std::lock_guard<std::mutex> l(mutex_);
 
   if (!file_) {

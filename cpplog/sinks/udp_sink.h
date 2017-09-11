@@ -72,7 +72,7 @@ public:
 
   UdpSink(string_view receiver_addr);
 
-  void SubmitRecord(const LogRecord&) override;
+  void Submit(const LogRecord&) override;
 
 private:
   SocketHandle sock_;
@@ -81,4 +81,3 @@ private:
 } // namespace cpplog
 
 #include "cpplog/sinks/udp_sink_inl.h"
-

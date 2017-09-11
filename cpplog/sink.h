@@ -11,11 +11,10 @@ public:
     return true;
   }
 
-  virtual void SubmitRecord(const LogRecord&) = 0;
+  virtual void Submit(const LogRecord&) = 0;
 
 protected:
   ~LogSink() = default;
 };
 
 }  // namespace cpplog
-

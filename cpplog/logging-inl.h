@@ -18,9 +18,9 @@ CPPLOG_INLINE void LogDispatcher::EnableLevelAbove(LogLevel level) {
   level_limit_ = level;
 }
 
-CPPLOG_INLINE void LogDispatcher::SubmitRecord(const LogRecord& r) {
+CPPLOG_INLINE void LogDispatcher::Submit(const LogRecord& r) {
   for (auto s : sinks_) {
-    s->SubmitRecord(r);
+    s->Submit(r);
   }
 }
 
@@ -86,7 +86,7 @@ CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
 
 CPPLOG_INLINE LogCapture::~LogCapture() {
   record_.message(message_stream_.str());
-  sink_.SubmitRecord(record_);
+  sink_.Submit(record_);
 }
 
 } // namespace cpplog

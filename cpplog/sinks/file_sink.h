@@ -24,7 +24,7 @@ public:
   void CloseLogFile();
 
   // LogSink interface
-  void SubmitRecord(const LogRecord&) override;
+  void Submit(const LogRecord&) override;
 
 private:
   static const int kRolloverAttemptFrequency = 0x20;

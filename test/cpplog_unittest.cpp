@@ -9,7 +9,7 @@ using namespace cpplog;
 using namespace fakeit;
 
 struct TestSink : public LogSink, public LogRecord {
-  void SubmitRecord(const LogRecord& record) override {
+  void Submit(const LogRecord& record) override {
     (LogRecord&)(*this) = record;
   }
 

@@ -35,7 +35,7 @@ TEST_CASE("FileSink CreateLogFile") {
 
   cpplog::LogRecord record;
   record.message("test log message");
-  s1.SubmitRecord(record);
+  s1.Submit(record);
 
   auto logfile_path = s1.current_logfile_path();
   REQUIRE(!logfile_path.empty());
@@ -58,7 +58,7 @@ TEST_CASE("FileSink LogFile Rotation") {
 
   cpplog::LogRecord record;
   record.message("01234567890123456789"); // 20 bytes at least
-  s.SubmitRecord(record);
+  s.Submit(record);
   auto logfile_path_1 = s.current_logfile_path();
 
   // sleep 1 second to ensure log file name will be different
@@ -67,7 +67,7 @@ TEST_CASE("FileSink LogFile Rotation") {
   for (int i = 0; i < 100; ++i) {
     cpplog::LogRecord record;
     record.message("01234567890123456789"); // 20 bytes at least
-    s.SubmitRecord(record);
+    s.Submit(record);
   }
   auto logfile_path_2 = s.current_logfile_path();
   s.CloseLogFile();
