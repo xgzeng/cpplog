@@ -40,9 +40,9 @@ private:
 
 class LogCapture {
 public:
-  LogCapture(LogLevel level, const SourceFileInfo&);
+  LogCapture(LogLevel level, const source_location&);
 
-  LogCapture(LogSink& sink, LogLevel level, const SourceFileInfo&);
+  LogCapture(LogSink& sink, LogLevel level, const source_location&);
 
   ~LogCapture();
 
