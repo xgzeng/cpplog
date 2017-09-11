@@ -32,15 +32,15 @@ CPPLOG_INLINE void to_json(json& j, LogLevel l) {
   }
 }
 
-class SourceFileInfo {
+class source_location {
 public:
-  SourceFileInfo() {}
-
-  SourceFileInfo(const char* file_name, const char* func, int line)
-  : file_name_(file_name), func_(func), line_(line) {
+  source_location() noexcept {}
+  
+  source_location(const char* file_name, const char* func, int line)
+  : file_name_(file_name), function_name_(func), line_(line) {
   }
 
-  const char* file_name() const {
+  constexpr const char* file_name() const noexcept {
     return file_name_;
   }
 
@@ -52,21 +52,26 @@ public:
     return base_filename ? base_filename + 1 : file_name_;
   }
 
-  int line() const {
+  constexpr const char* function_name() const {
+    return function_name_;
+  }
+
+  constexpr std::uint_least32_t column() const noexcept {
+    return column_;
+  }
+  
+  constexpr std::uint_least32_t line() const noexcept {
     return line_;
   }
 
-  const char* function_name() const {
-    return func_;
-  }
-
 private:
-  const char* file_name_ = "";
-  const char* func_ = "";
-  int line_ = 0;
+  const char* file_name_ {""};
+  const char* function_name_ {""};
+  std::uint_least32_t line_ {0};
+  std::uint_least32_t column_ {0};
 };
 
-CPPLOG_INLINE void to_json(json& j, const SourceFileInfo& info) {
+CPPLOG_INLINE void to_json(json& j, const source_location& info) {
   j = json{{"file_name", info.file_name()},
            {"function_name", info.function_name()},
            {"line", info.line()}};
@@ -76,7 +81,7 @@ class LogRecord {
 public:
   LogRecord() = default;
 
-  LogRecord(LogLevel level, const SourceFileInfo&);
+  LogRecord(LogLevel level, const source_location&);
 
   ~LogRecord() = default;
 
@@ -98,12 +103,12 @@ public:
     return level_;
   }
 
-  const SourceFileInfo src_file_info() const {
-    return src_file_info_;
+  const source_location src_location() const {
+    return src_location_;
   }
 
-  void src_file_info(const SourceFileInfo& info) {
-    src_file_info_ = info;
+  void src_location(const source_location& info) {
+    src_location_ = info;
   }
 
   const timespec& timestamp() const {
@@ -127,14 +132,14 @@ private:
 
   timespec timestamp_ = { 0 , 0 };
 
-  SourceFileInfo src_file_info_;
+  source_location src_location_;
 
   json fields_;
 };
 
 CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
-                                   const SourceFileInfo& src_file_info)
-: level_(level), timestamp_{0, 0}, src_file_info_(src_file_info) {
+                                   const source_location& src_loc)
+: level_(level), timestamp_{0, 0}, src_location_(src_loc) {
 #ifdef _WIN32
   timespec_get(&timestamp_, TIME_UTC);
 #else
@@ -166,7 +171,7 @@ CPPLOG_INLINE std::string FormatAsText(const LogRecord& r) {
   localtime_r(&r.timestamp().tv_sec, &tm_local);
 #endif
 
-  auto& file_info = r.src_file_info();
+  auto& file_info = r.src_location();
 
   return fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2}.{:0>4} {}:{}:{}] {}",
       level_letter, 1 + tm_local.tm_mon, tm_local.tm_mday,

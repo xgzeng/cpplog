@@ -74,14 +74,14 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
 }
 
 // LogCapturer
-CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const SourceFileInfo& src_file_info)
-: record_(level, src_file_info), sink_(LogDispatcher::instance()) {
+CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const source_location& src_location)
+: record_(level, src_location), sink_(LogDispatcher::instance()) {
 }
 
 CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
                                      LogLevel level,
-                                     const SourceFileInfo& src_file_info)
-: record_(level, src_file_info), sink_(s) {
+                                     const source_location& src_location)
+: record_(level, src_location), sink_(s) {
 }
 
 CPPLOG_INLINE LogCapture::~LogCapture() {
