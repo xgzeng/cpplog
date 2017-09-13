@@ -2,6 +2,7 @@
 #ifndef WIN32
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 namespace cpplog {
@@ -97,6 +98,20 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
       if (CreateLogFile(file_path)) {
         current_logfile_path_ = file_path;
         create_file_success = true;
+        // create symlink
+#ifndef WIN32
+        auto link_path = dir + "/" + base_name_ + ".log";
+        
+        struct stat symlink_state;
+        int status = lstat(link_path.c_str(), &symlink_state);
+        if (status == 0) {
+          unlink(link_path.c_str());
+        }
+
+        if (symlink(filename.c_str(), link_path.c_str()) != 0) {
+          perror("Could not create symlink file");
+        }
+#endif
         break;
       }
     }
