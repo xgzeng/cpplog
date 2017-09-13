@@ -17,4 +17,6 @@ protected:
   ~LogSink() = default;
 };
 
+typedef std::shared_ptr<LogSink> LogSinkPtr;
+
 }  // namespace cpplog

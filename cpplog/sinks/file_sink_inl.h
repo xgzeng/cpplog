@@ -37,17 +37,17 @@ CPPLOG_INLINE std::string GetExecutableBaseName() {
   return path.substr(begin_pos, count);
 }
 
+CPPLOG_INLINE FileSink::FileSink()
+: FileSink(string_view{}) {
+}
+
 CPPLOG_INLINE FileSink::FileSink(string_view base_name)
 : base_name_(base_name),
   file_{nullptr, fclose} {
-  log_dir_ = { "." };
+  log_dirs_ = { "." };
   if (base_name_.empty()) {
     base_name_ = GetExecutableBaseName();
   }
-}
-
-CPPLOG_INLINE FileSink::FileSink()
-: FileSink(string_view{}) {
 }
 
 CPPLOG_INLINE const std::string& FileSink::current_logfile_path() const {
@@ -88,7 +88,7 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
 
     // try to create log file in various directory
     bool create_file_success = false;
-    for (const auto& dir : log_dir_) {
+    for (const auto& dir : log_dirs_) {
 #if WIN32
       auto file_path = dir + "\\" + filename;
 #else

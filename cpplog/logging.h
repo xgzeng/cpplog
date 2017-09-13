@@ -31,9 +31,10 @@ public:
     auto p = std::make_shared<T>(std::forward<ConstructorArgs>(args)...);
     sinks_.push_back(p);
   }
+  
+  void AddLogSink(LogSinkPtr sink);
 
 private:
-  typedef std::shared_ptr<LogSink> LogSinkPtr;
   LogLevel level_limit_ = LogLevel::Information;
   std::vector<LogSinkPtr> sinks_;
 };
@@ -77,6 +78,9 @@ private:
 
 /// global functions
 CPPLOG_INLINE void AddLogSink(LogSink*);
+
+template<typename... T>
+CPPLOG_INLINE void SetLogToFile(T&&... args);
 
 CPPLOG_INLINE void SetLogToConsole(bool enable);
 
