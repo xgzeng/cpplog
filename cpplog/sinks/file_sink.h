@@ -12,12 +12,16 @@ public:
   
   FileSink(string_view base_name);
   
-  const std::string base_name() const {
+  const std::string& base_name() const {
     return base_name_;
   }
   
   void set_base_name(string_view name) {
+#ifdef __cpp_lib_experimental_string_view
+    base_name_ = std::string(name.data(), name.size());
+#else
     base_name_ = name;
+#endif
   }
 
   void set_max_file_length(unsigned int max_length) {

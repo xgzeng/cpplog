@@ -33,9 +33,7 @@ TEST_CASE("FileSink CreateLogFile") {
   FileSink s1("test");
   REQUIRE(s1.current_logfile_path().empty());
 
-  cpplog::LogRecord record;
-  record.message("test log message");
-  s1.Submit(record);
+  s1.Submit(LogRecord{"test log message"});
 
   auto logfile_path = s1.current_logfile_path();
   REQUIRE(!logfile_path.empty());
@@ -56,18 +54,14 @@ TEST_CASE("FileSink LogFile Rotation") {
   FileSink s("test");
   s.set_max_file_length(2000); // 2K
 
-  cpplog::LogRecord record;
-  record.message("01234567890123456789"); // 20 bytes at least
-  s.Submit(record);
+  s.Submit(LogRecord{"01234567890123456789"});
   auto logfile_path_1 = s.current_logfile_path();
 
   // sleep 1 second to ensure log file name will be different
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   for (int i = 0; i < 100; ++i) {
-    cpplog::LogRecord record;
-    record.message("01234567890123456789"); // 20 bytes at least
-    s.Submit(record);
+    s.Submit(LogRecord{"01234567890123456789"});
   }
   auto logfile_path_2 = s.current_logfile_path();
   s.CloseLogFile();
