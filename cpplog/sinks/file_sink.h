@@ -79,15 +79,10 @@ private:
 };
 
 struct FileSinkDirs {
-  
   FileSinkDirs(std::initializer_list<std::string> args)
   : dirs_{args} {
   }
-  
-  // FileSinkDirs(std::initializer_list<T> args)
-  // : dirs_{args} {
-  // }
-  
+
   void operator()(FileSink& sink) {
     sink.set_log_dirs(dirs_);
   }

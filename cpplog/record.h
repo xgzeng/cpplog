@@ -62,7 +62,7 @@ public:
 #ifdef __cpp_lib_experimental_string_view
     message_ = std::string(msg.data(), msg.size());
 #else
-    message_ = name;
+    message_ = msg;
 #endif
   }
 

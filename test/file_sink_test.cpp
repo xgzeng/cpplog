@@ -1,8 +1,13 @@
 #include "cpplog/logging.h"
 #include "cpplog/sinks/file_sink.h"
+
+#ifdef WIN32
+#undef max // max macro conflict with catch
+#endif
 #include "catch.hpp"
 
 using cpplog::FileSink;
+using cpplog::LogRecord;
 
 TEST_CASE("FileSink Constructor") {
   FileSink s1("test");
