@@ -32,3 +32,10 @@ constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
 #define LOG_IF(level, condition, fmt, ...) \
   if (condition) LOG_TO_IMPL(cpplog::LogDispatcher::instance(), \
     LVL_##level, fmt, ##__VA_ARGS__)
+
+#define LOG_EVERY_N(level, n, fmt, ...)                          \
+    static int LOG_OCCURRENCES = 0, LOG_OCCURRENCES_MOD_N = 0;   \
+    ++LOG_OCCURRENCES;                                           \
+    if (++LOG_OCCURRENCES_MOD_N > n) LOG_OCCURRENCES_MOD_N -= n; \
+    if (LOG_OCCURRENCES_MOD_N == 1)                              \
+        LOG_TO_IMPL(cpplog::LogDispatcher::instance(), LVL_##level, fmt, ##__VA_ARGS__)

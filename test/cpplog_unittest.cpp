@@ -89,14 +89,39 @@ TEST_CASE("logging macros") {
     LogDispatcher::instance().EnableLevelAbove(LogLevel::Error);
     LOG(INFO, "hello, info level");
     REQUIRE(log_result.message() == "");
+    LogDispatcher::instance().EnableLevelAbove(LogLevel::Information);
   }
 
   SECTION("LOG_IF") {
-    LOG_IF(INFO, true, "");
+    WHEN("condition is true") {
+      LOG_IF(INFO, true, "TEST_LOG_IF(true)");
+      REQUIRE(log_result.message() == "TEST_LOG_IF(true)");
+    }
 
-    LOG_IF(ERROR, true, "");
+    WHEN("condition is false") {
+      LOG_IF(ERROR, false, "TEST_LOG_IF(false)");
+      REQUIRE(log_result.message() == "");
+    }
+  }
 
-    LOG_TO_IF(log_result, ERROR, true, "test");
-    REQUIRE(log_result.message() == "test");
+  SECTION("LOG_TO_IF") {
+    LOG_TO_IF(log_result, ERROR, true, "if_true");
+    REQUIRE(log_result.message() == "if_true");
+
+    LOG_TO_IF(log_result, ERROR, false, "if_false");
+    REQUIRE(log_result.message() == "if_true");
+  }
+}
+
+TEST_CASE("LOG_EVERY_N") {
+  AddLogSink(&log_result);
+  for (int i = 0; i <= 100; ++i) {
+    log_result.reset();
+    LOG_EVERY_N(INFO, 10, "LOG_EVERY_{}", i);
+    if (i % 10 == 0) {
+      REQUIRE(log_result.message() == fmt::format("LOG_EVERY_{}", i));
+    } else {
+      REQUIRE(log_result.message() == "");
+    }
   }
 }
