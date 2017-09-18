@@ -58,8 +58,8 @@ private:
 
   std::string current_logfile_path_;
 
-  unsigned int file_length_{ 0 };
-  int bytes_since_flush_{ 0 };
+  std::size_t file_length_{ 0 };
+  std::size_t bytes_since_flush_{ 0 };
   void FlushUnlocked();
   void CloseFileUnlocked();
 };
