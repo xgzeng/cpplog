@@ -15,9 +15,11 @@ constexpr cpplog::LogLevel LVL_FATAL   = cpplog::LogLevel::Fatal;
   #define __FUNCTION_SIGNATURE__ ""
 #endif
 
+#define SOURCE_LOCATION cpplog::source_location{__FILE__, __func__, __LINE__}
+
 #define LOG_TO_IMPL(sink, level, fmt, ...) \
   if (sink.is_level_enabled(level))   \
-    cpplog::LogCapture(sink, level, {__FILE__, __func__, __LINE__})  \
+    cpplog::LogCapture(sink, level, SOURCE_LOCATION)  \
             .message(fmt, ##__VA_ARGS__)
 
 #define LOG_TO(sink, level, fmt, ...) \
