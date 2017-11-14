@@ -1,5 +1,6 @@
 #include "cpplog/logging.h"
 #include "cpplog/sinks/file_sink.h"
+#include <thread>
 
 #ifdef WIN32
 #undef max // max macro conflict with catch

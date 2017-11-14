@@ -33,11 +33,11 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
 
   auto colon_pos = addr.find_first_of(':');
   if (colon_pos == string_view::npos) {
-    ip = addr;
+    ip = std::string{addr};
     port = DEFAULT_PORT;
   } else {
-    ip = addr.substr(0, colon_pos);
-    port = std::stoi(addr.substr(colon_pos + 1));
+    ip = std::string{addr.substr(0, colon_pos)};
+    port = std::stoi(std::string{addr.substr(colon_pos + 1)});
   }
 
   // invalid port
@@ -83,7 +83,7 @@ CPPLOG_INLINE void UdpSink::Submit(const LogRecord& record) {
   j["@version"] = "1";
   j["level"] = record.level();
   j["message"] = record.message();
-  j["src_file_info"] = record.src_file_info();
+  j["source_location"] = record.src_location();
   std::string s = j.dump();
   send(sock_.get(), s.data(), s.size(), 0);
 }

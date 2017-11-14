@@ -13,14 +13,18 @@
 namespace cpplog {
 
 // wrap windows MultiByteToWideChar
-inline int MultiByteToWideChar2(UINT CodePage, DWORD dwFlags, const std::string& ns, std::wstring& ws) {
+inline int MultiByteToWideChar2(UINT CodePage, DWORD dwFlags,
+                                const std::string& ns,
+                                std::wstring& ws) {
   return MultiByteToWideChar(CodePage, dwFlags,
                              ns.data(), static_cast<int>(ns.size()),
                              const_cast<wchar_t*>(ws.data()),
                              static_cast<int>(ws.size()));
 }
 
-inline int WideCharToMultiByte2(UINT CodePage, DWORD dwFlags, const std::wstring& ws, std::string& ns) {
+inline int WideCharToMultiByte2(UINT CodePage, DWORD dwFlags,
+                                const std::wstring& ws,
+                                std::string& ns) {
   return WideCharToMultiByte(CodePage, dwFlags,
                              ws.data(), static_cast<int>(ws.size()),
                              const_cast<char*>(ns.data()),
