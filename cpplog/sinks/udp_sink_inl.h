@@ -39,6 +39,10 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
     ip = std::string{addr.substr(0, colon_pos)};
     port = std::stoi(std::string{addr.substr(colon_pos + 1)});
   }
+  
+  if (ip.empty()) {
+    ip = "127.0.0.1";
+  }
 
   // invalid port
   if (port == 0) {

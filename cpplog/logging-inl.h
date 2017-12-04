@@ -62,6 +62,11 @@ CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
   return global_instance;
 };
 
+template<typename T, typename... Args>
+CPPLOG_INLINE void AddLogSink(Args&&... args) {
+  LogDispatcher::instance().AddSink<T>(std::forward<Args>(args)...);
+}
+
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
   if (!LogDispatcher::instance().HasLogSink(sink)) {
     LogDispatcher::instance().AddLogSink(sink);

@@ -5,8 +5,8 @@
 #include "cpplog/record.h"
 #include <time.h>
 #include <sstream>
-#include "fmt/format.h"
-#include "fmt/ostream.h"
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 namespace cpplog {
 
@@ -78,6 +78,9 @@ private:
 
 /// global functions
 CPPLOG_INLINE void AddLogSink(LogSink*);
+
+template<typename T, typename... Args>
+CPPLOG_INLINE void AddLogSink(Args&&... args);
 
 template<typename... T>
 CPPLOG_INLINE void SetLogToFile(T&&... args);
