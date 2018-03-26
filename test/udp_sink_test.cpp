@@ -24,6 +24,6 @@ TEST_CASE("UdpSink") {
   ret = recv(fd, buf, sizeof(buf), 0);
   REQUIRE(ret != -1);
   
-  auto j = json::parse(std::string{buf, ret});
+  auto j = json::parse(std::string(buf, ret));
   REQUIRE(j["message"] == "test log message");
 }

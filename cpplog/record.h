@@ -1,10 +1,10 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include <json.hpp>      // nlohmann::json
+#include <nlohmann/json.hpp>      // nlohmann::json
 #include <fmt/format.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <sys/time.h> // gettimeofday
 #endif
 

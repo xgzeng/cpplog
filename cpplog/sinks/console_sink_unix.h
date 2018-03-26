@@ -1,6 +1,9 @@
 #pragma once
+
 #include "cpplog/config.h"
 #include "cpplog/sink.h"
+
+#include <iostream>
 #include <iomanip> // std::setw etc.
 
 namespace cpplog {
