@@ -1,8 +1,9 @@
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
 #include "cpplog/logging.h"
 #include "cpplog/sinks/console_sink.h"
 #include "cpplog/hex.h"
+
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 #include "fakeit.hpp"
 
 using namespace cpplog;

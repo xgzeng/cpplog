@@ -18,7 +18,9 @@ TEST_CASE("UdpSink") {
   
   // 
   UdpSink sink("127.0.0.1");
-  sink.Submit(LogRecord{"test log message"});
+  LogRecord r;
+  r.set_message("test log message");
+  sink.Submit(r);
   
   char buf[256] = {};
   ret = recv(fd, buf, sizeof(buf), 0);
