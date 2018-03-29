@@ -83,7 +83,9 @@ TEST_CASE("UBJsonWriter WriteValue") {
 
   SECTION("WriteValue uint16") {
     writer.WriteValue((uint16_t) 0xFFFF);
-    REQUIRE(sink.str() == std::string{'l', '\x00', '\x00', '\xFF', '\xFF'});
+
+    std::string expected{'l', '\x00', '\x00', '\xFF', '\xFF'};
+    REQUIRE(sink.str() == expected);
   }
 
   SECTION("WriteValue int32") {
@@ -95,10 +97,11 @@ TEST_CASE("UBJsonWriter WriteValue") {
   SECTION("WriteValue uint32") {
     writer.WriteValue((uint32_t) 0xFFFFFFFF);
     writer.WriteValue((uint32_t) 1);
-    REQUIRE(sink.str() == std::string{'L',
-        '\x00', '\x00', '\x00', '\x00',
-        '\xFF', '\xFF', '\xFF', '\xFF',
-        'i', '\x01'});
+
+    std::string expected {'L', '\x00', '\x00', '\x00', '\x00',
+        '\xFF', '\xFF', '\xFF', '\xFF', 'i', '\x01'};
+    
+    REQUIRE(sink.str() == expected);
   }
 
   SECTION("WriteValue int64") {
