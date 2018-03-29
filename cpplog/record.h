@@ -152,7 +152,7 @@ CPPLOG_INLINE std::string FormatAsText(const LogRecord& r) {
   }();
 
   struct tm tm_local {};
-#ifdef WIN32
+#ifdef _WIN32
   localtime_s(&tm_local, &r.timestamp().tv_sec);
 #else
   localtime_r(&r.timestamp().tv_sec, &tm_local);
