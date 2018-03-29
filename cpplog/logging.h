@@ -53,12 +53,12 @@ public:
     return *this;
   }
 
-  template<typename... T>
-  LogCapture& message(fmt::CStringRef fmt_str, T&&... args) {
+  template<typename FMT_STR, typename... T>
+  LogCapture& message(FMT_STR&& fmt_str, T&&... args) {
     try {
-      fmt::print(message_stream_, fmt_str, std::forward<T>(args)...);
+      fmt::print(message_stream_, std::forward<FMT_STR>(fmt_str), std::forward<T>(args)...);
     } catch (std::exception& e) {
-      message_stream_ << "format message '" << fmt_str.c_str() << "' failed, " << e.what();
+      message_stream_ << "format message '" << fmt_str << "' failed, " << e.what();
     }
     return *this;
   }
