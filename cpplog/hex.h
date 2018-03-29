@@ -19,4 +19,15 @@ template <typename C> CPPLOG_INLINE std::string hexify(const C &bytes) {
   return result;
 }
 
+CPPLOG_INLINE std::string hexify(const void* pdata, std::size_t byte_count) {
+  std::string result;
+  const char * pc = (const char*) pdata;
+  for (int i = 0; i < byte_count; ++i) {
+    char c = pc[i];
+    result += HEX_CHARS[(c & 0xF0) >> 4];
+    result += HEX_CHARS[c & 0x0F];
+  }
+  return result;
+}
+
 } // namespace cpplog
