@@ -65,6 +65,10 @@ public:
     return data_size_;
   }
 
+  bool empty() const {
+    return data_size_ == 0;
+  }
+
   const char* begin() const {
     return data_;
   }
