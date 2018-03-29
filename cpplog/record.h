@@ -24,8 +24,6 @@ class LogRecord {
 public:
   LogRecord() = default;
   
-  LogRecord(string_view msg);
-
   LogRecord(LogLevel level, const source_location&);
 
   ~LogRecord() = default;
@@ -88,14 +86,6 @@ private:
   Attachment attachment_;
 #endif
 };
-
-CPPLOG_INLINE LogRecord::LogRecord(string_view msg) {
-#ifdef __cpp_lib_experimental_string_view
-    message_ = std::string(msg.data(), msg.size());
-#else
-    message_ = msg;
-#endif
-}
 
 CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,
                                    const source_location& src_loc)

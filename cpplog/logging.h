@@ -10,6 +10,8 @@
 
 namespace cpplog {
 
+typedef std::shared_ptr<LogSink> LogSinkPtr;
+
 class LogDispatcher : public LogSink {
 public:
   static LogDispatcher& instance();
