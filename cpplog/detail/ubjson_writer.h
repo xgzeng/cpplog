@@ -17,6 +17,17 @@
   #define  TO_BIG_ENDIAN_64(value) __builtin_bswap64(value)
 #endif
 
+#elif defined(_MSC_VER) && defined(_WIN32)
+
+// Windows Platform is always little endian now
+inline void CHECK_TYPE_SIZE() {
+  static_assert(sizeof(unsigned long) == 4 && sizeof(unsigned short) == 2, "");
+}
+
+#define  TO_BIG_ENDIAN_16(value) _byteswap_ushort(value)
+#define  TO_BIG_ENDIAN_32(value) _byteswap_ulong(value)
+#define  TO_BIG_ENDIAN_64(value) _byteswap_uint64(value)
+
 #else
 #error "compiler not supported yet"
 #endif
