@@ -40,8 +40,12 @@ if (CPPLOG_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
+link_libraries(cpplog)
+
 ### Tests
 if (CPPLOG_BUILD_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif(CPPLOG_BUILD_TESTS)
+
+add_subdirectory(cpplog/detail)
