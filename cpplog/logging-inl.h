@@ -84,9 +84,8 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
 }
 
 namespace detail {
-  
-CPPLOG_INLINE void SetLogToFileHelper(FileSink& sink) {
-}
+
+CPPLOG_INLINE void SetLogToFileHelper(FileSink&) {}
 
 template<typename T1, typename... Ts>
 CPPLOG_INLINE void SetLogToFileHelper(FileSink& sink, T1&& modifier1, Ts&&... modifiers) {
@@ -117,7 +116,7 @@ CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
 }
 
 CPPLOG_INLINE LogCapture::~LogCapture() {
-  record_.message(message_stream_.str());
+  record_.set_message(message_stream_.str());
   sink_.Submit(record_);
 }
 

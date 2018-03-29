@@ -1,29 +1,24 @@
 #pragma once
 
 #include "cpplog/config.h"
-
-#include "json.hpp"  // nlohmann::json
+#include "cpplog/detail/sstream_byte_sink.h"
+#include "cpplog/detail/ubjson_writer.h"
 
 namespace cpplog {
 
-using json = nlohmann::json;
-
-/*!
- *
- */
-class JsonAttachment {
+class Attachment {
 public:
-  JsonAttachment()
-  : json_value_(json::object()) {
+  Attachment() {
   }
 
-  json to_json() const {
-    return json_value_;
+  template<typename T>
+  void Attach(string_view name, T&& value) {
+    writer_.WriteNameValue(name, std::forward<T>(value));
   }
 
 private:
-  json json_value_;
+  StringStreamByteSink sink_;
+  UBJsonWriter writer_ {sink_};
 };
 
 } // namespace cpplog
-

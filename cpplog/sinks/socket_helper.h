@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <WinSock2.h>
 #else
 #include <unistd.h> // close
@@ -9,7 +9,7 @@
 namespace cpplog {
 
 class SocketHandle {
-#ifdef WIN32
+#ifdef _WIN32
   typedef SOCKET HANDLE_TYPE;
   static const HANDLE_TYPE INVALID_VALUE = INVALID_SOCKET;
 #else
@@ -23,7 +23,7 @@ public:
   SocketHandle(HANDLE_TYPE fd) : fd_(fd) {}
 
   ~SocketHandle() {
-#ifdef WIN32
+#ifdef _WIN32
     if (fd_ != INVALID_VALUE) closesocket(fd_);
 #else
     if (fd_ != INVALID_VALUE) close(fd_);

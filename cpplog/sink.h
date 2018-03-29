@@ -7,7 +7,7 @@ namespace cpplog {
 
 class LogSink {
 public:
-  virtual bool is_level_enabled(LogLevel level) const {
+  virtual bool is_level_enabled(LogLevel) const {
     return true;
   }
 

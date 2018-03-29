@@ -66,7 +66,7 @@ public:
   // capture log record properties
   template<typename T>
   LogCapture& operator()(string_view name, T&& value) {
-    record_.add_field(name, std::forward<T>(value));
+    record_.Attach(name, std::forward<T>(value));
     return *this;
   }
 

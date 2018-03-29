@@ -1,4 +1,4 @@
-#ifndef WIN32
+#ifndef _WIN32
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -7,7 +7,7 @@
 namespace cpplog {
 
 CPPLOG_INLINE std::string GetExecutableBaseName() {
-#if WIN32
+#if _WIN32
   const char PATH_SLASH_CHAR = '\\';
   TCHAR file_path[MAX_PATH + 1];
   DWORD file_name_len = GetModuleFileName(NULL, file_path, MAX_PATH + 1);
@@ -68,13 +68,13 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
     time_t timestamp;
     time(&timestamp);
     struct ::tm tm_time;
-#ifdef WIN32
+#ifdef _WIN32
     localtime_s(&tm_time, &timestamp);
 #else
     localtime_r(&timestamp, &tm_time);
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
     auto pid = GetCurrentProcessId();
 #else
     int pid = getpid();
@@ -89,7 +89,7 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
     // try to create log file in various directory
     bool create_file_success = false;
     for (const auto& dir : log_dirs_) {
-#if WIN32
+#if _WIN32
       auto file_path = dir + "\\" + filename;
 #else
       auto file_path = dir + "/" + filename;
@@ -98,7 +98,7 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
         current_logfile_path_ = file_path;
         create_file_success = true;
         // create symlink
-#ifndef WIN32
+#ifndef _WIN32
         auto link_path = dir + "/" + base_name_ + ".log";
         
         struct stat symlink_state;
@@ -150,7 +150,7 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
 }
 
 CPPLOG_INLINE bool FileSink::CreateLogFile(const std::string& file_name) {
-#if WIN32
+#if defined(_WIN32)
   FILE* f = nullptr;
   if (fopen_s(&f, file_name.c_str(), "a+") != 0) {
     return false;

@@ -2,7 +2,7 @@
 #include "cpplog/sinks/file_sink.h"
 #include <thread>
 
-#ifdef WIN32
+#ifdef _WIN32
 #undef max // max macro conflict with catch
 #endif
 #include "catch.hpp"
@@ -16,7 +16,7 @@ TEST_CASE("FileSink Constructor") {
 }
 
 static bool FileExists(const std::string& path) {
-#ifdef WIN32
+#ifdef _WIN32
   FILE* fp = nullptr;
   if (fopen_s(&fp, path.c_str(), "r") == 0) {
     fclose(fp);

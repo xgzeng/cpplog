@@ -1,6 +1,8 @@
 #pragma once
 
-#ifdef WIN32
+#include <cpplog/nlohmann_json.h>
+
+#ifdef _WIN32
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #else
@@ -9,9 +11,9 @@
 #include <arpa/inet.h>  // inet_pton
 #endif
 
-#include "fmt/time.h"
+#include <fmt/time.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #define THROW_SOCKET_SYSTEM_ERROR() \
   throw std::system_error(WSAGetLastError(), std::generic_category())
 #else
@@ -54,7 +56,7 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons(port);
 
-#ifdef WIN32
+#ifdef _WIN32
   if (!InetPton(AF_INET, ip.c_str(), &saddr.sin_addr.s_addr)) {
     THROW_SOCKET_SYSTEM_ERROR();
   }
@@ -73,7 +75,7 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
 
 CPPLOG_INLINE std::string to_iso8601(timespec ts) {
   struct tm result;
-#ifdef WIN32
+#ifdef _WIN32
   gmtime_s(&result, &ts.tv_sec);
 #else
   gmtime_r(&ts.tv_sec, &result);
@@ -82,7 +84,8 @@ CPPLOG_INLINE std::string to_iso8601(timespec ts) {
 }
 
 CPPLOG_INLINE void UdpSink::Submit(const LogRecord& record) {
-  json j = record.fields();
+  json j{};
+  // = record.fields();
   j["@timestamp"] = to_iso8601(record.timestamp());
   j["@version"] = "1";
   j["level"] = record.level();

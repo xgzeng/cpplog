@@ -1,16 +1,17 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include <nlohmann/json.hpp>      // nlohmann::json
+#include "cpplog/attachment.h"
+
 #include <fmt/format.h>
 
 #ifndef _WIN32
 #include <sys/time.h> // gettimeofday
+#else
+#include <time.h>
 #endif
 
 namespace cpplog {
-
-using json = nlohmann::json;
 
 enum class LogLevel {
   Trace,
@@ -20,23 +21,6 @@ enum class LogLevel {
   Error,
   Fatal
 };
-
-CPPLOG_INLINE void to_json(json& j, LogLevel l) {
-  switch(l) {
-  case LogLevel::Trace:          j = "TRACE"; break;
-  case LogLevel::Debug:          j = "DEBUG"; break;
-  case LogLevel::Information:    j = "INFO";  break;
-  case LogLevel::Warning:        j = "WARNING"; break;
-  case LogLevel::Error:          j = "ERROR"; break;
-  case LogLevel::Fatal:          j = "FATAL"; break;
-  }
-}
-
-CPPLOG_INLINE void to_json(json& j, const source_location& info) {
-  j = json{{"file_name", info.file_name()},
-           {"function_name", info.function_name()},
-           {"line", info.line()}};
-}
 
 class LogRecord {
 public:
@@ -50,15 +34,11 @@ public:
 
   LogRecord& operator=(const LogRecord&) = default;
 
-  // std::string& message() {
-  //   return message_;
-  // };
-
   const std::string& message() const {
     return message_;
   };
 
-  void message(string_view msg) {
+  void set_message(string_view msg) {
 #ifdef __cpp_lib_experimental_string_view
     message_ = std::string(msg.data(), msg.size());
 #else
@@ -70,27 +50,30 @@ public:
     return level_;
   }
 
+  void set_leve(LogLevel value) {
+    level_ = value;
+  }
+
   const source_location src_location() const {
     return src_location_;
   }
 
-  void src_location(const source_location& info) {
-    src_location_ = info;
+  void set_src_location(const source_location& value) {
+    src_location_ = value;
   }
 
   const timespec& timestamp() const {
     return timestamp_;
   }
 
-  // add integer property
-  template<typename T>
-  void add_field(string_view name, T&& value) {
-    fields_[std::string(name)] = value;
+  void set_timestamp(const timespec& value) {
+    timestamp_ = value;
   }
 
-  json fields() const {
-    return fields_;
-  };
+  template<typename T>
+  void Attach(string_view name, T&& value) {
+    attachment_.Attach(name, std::forward<T>(value));
+  }
 
 private:
   std::string message_;
@@ -101,7 +84,7 @@ private:
 
   source_location src_location_;
 
-  json fields_;
+  Attachment attachment_;
 };
 
 CPPLOG_INLINE LogRecord::LogRecord(string_view msg) {
@@ -130,7 +113,7 @@ namespace {
   
 const char* base_file_name(const char* file_name) {
   const char* base_filename = strrchr(file_name, '/');
-#ifdef WIN32
+#ifdef _WIN32
   if (!base_filename) base_filename = strrchr(file_name, '\\');
 #endif
   return base_filename ? base_filename + 1 : file_name;
