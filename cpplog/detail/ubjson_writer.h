@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-#if defined(__GUNC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   #define  TO_BIG_ENDIAN_16(value) value
