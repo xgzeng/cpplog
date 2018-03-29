@@ -34,6 +34,19 @@ inline void CHECK_TYPE_SIZE() {
 
 namespace cpplog { namespace detail {
 
+/// integer cast safeness template
+template<typename FROM, typename TO>
+struct is_safe_integer_cast: std::conditional<
+  // condition
+  (std::is_signed<FROM>::value == std::is_signed<TO>::value
+    && sizeof(FROM) <= sizeof(TO))
+  || (std::is_signed<TO>::value && sizeof(FROM) < sizeof(TO)),
+  // result type
+  std::true_type,
+  std::false_type>::type
+{
+};
+
 template<typename T>
 struct is_small_int {
   static const bool value = std::numeric_limits<T>::is_integer
@@ -159,6 +172,8 @@ public:
   template<typename T>
   UBJsonWriter& WriteValue(T value,
       typename std::enable_if<detail::is_small_int<T>::value, void*>::type = 0) {
+    static_assert(detail::is_safe_integer_cast<T, int32_t>::value, "");
+
     if (value >= 0) {
       if (value <= std::numeric_limits<int8_t>::max()) {
         return WriteInt8(value);
@@ -183,6 +198,8 @@ public:
   template<typename T>
   UBJsonWriter& WriteValue(T value,
       typename std::enable_if<detail::is_big_int<T>::value, void*>::type = 0) {
+    static_assert(detail::is_safe_integer_cast<T, int64_t>::value, "");
+
     if (value <= std::numeric_limits<int32_t>::max()) {
       return WriteValue(static_cast<int32_t>(value));
     } else {
