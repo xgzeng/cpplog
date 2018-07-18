@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 2.8)
 project(cpplog CXX)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
 option(CPPLOG_BUILD_TESTS "Build unit tests" ON)
 option(CPPLOG_BUILD_EXAMPLES "Build examples" ON)
 
-set(CONAN_BUILD_FILE ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-if(EXISTS ${CONAN_BUILD_FILE})
-    message("Using Conan")
-    include(${CONAN_BUILD_FILE})
-    conan_basic_setup()
-    set(USE_CONAN_BUILD TRUE)
-endif()
+# set(CONAN_BUILD_FILE ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+# if(EXISTS ${CONAN_BUILD_FILE})
+#     message("Using Conan")
+#     include(${CONAN_BUILD_FILE})
+#     conan_basic_setup()
+#     set(USE_CONAN_BUILD TRUE)
+# endif()
 
 if(NOT USE_CONAN_BUILD)
     if(NOT TARGET fmt)
@@ -33,7 +36,8 @@ target_link_libraries(cpplog
     # link to pthread is required to use std::call_once
     $<$<CXX_COMPILER_ID:GNU>: pthread>
 )
-target_compile_features(cpplog INTERFACE cxx_auto_type) # c++11 is required
+
+add_subdirectory(cpplog)
 
 ### Examples
 if (CPPLOG_BUILD_EXAMPLES)
