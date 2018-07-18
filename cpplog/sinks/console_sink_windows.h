@@ -1,6 +1,7 @@
 #pragma once
 #include <cpplog/config.h>
 #include <cpplog/sink.h>
+#include "cpplog/formatter/text_formatter.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

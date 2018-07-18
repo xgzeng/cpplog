@@ -68,9 +68,7 @@ public:
 
   template<typename T>
   void Attach(string_view name, T&& value) {
-#if CPPLOG_DISABLE_ATTACHMENT
     attachment_.Attach(name, std::forward<T>(value));
-#endif
   }
 
 private:
@@ -82,9 +80,7 @@ private:
 
   source_location src_location_;
 
-#if CPPLOG_DISABLE_ATTACHMENT
   Attachment attachment_;
-#endif
 };
 
 CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,

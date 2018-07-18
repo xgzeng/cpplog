@@ -3,6 +3,7 @@
 #include "cpplog/config.h"
 #include "cpplog/detail/byte_sink.h"
 
+#include <limits> // numeric_limits
 #include <cassert>
 
 #if defined(__GNUC__) || defined(__clang__)
