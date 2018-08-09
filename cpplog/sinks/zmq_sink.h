@@ -24,7 +24,7 @@ CPPLOG_INLINE ZeroMQSink::ZeroMQSink(const char* endpoint) {
   zmq_pub_sock_ = zmq_socket(zmq_ctx_, ZMQ_PUB);
   assert(zmq_pub_sock_);
 
-  if (!zmq_bind(zmq_pub_sock_, endpoint)) {
+  if (zmq_bind(zmq_pub_sock_, endpoint) != 0) {
     // release resource
     zmq_close(zmq_pub_sock_);
     zmq_ctx_term(zmq_ctx_);
@@ -42,7 +42,10 @@ CPPLOG_INLINE ZeroMQSink::~ZeroMQSink() {
 
 CPPLOG_INLINE void ZeroMQSink::Submit(const LogRecord& record) {
   auto s = FormatAsJSON(record);
-  zmq_send(zmq_pub_sock_, s.data(), s.size(), 0);
+  int ret = zmq_send(zmq_pub_sock_, s.data(), s.size(), 0);
+  if (ret != s.size()) {
+    printf("zmq_send failed\n");
+  }
 }
 
 } // namespace cpplog
