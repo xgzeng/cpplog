@@ -16,12 +16,12 @@ public:
     return base_name_;
   }
   
-  void set_base_name(string_view name) {
-#ifdef __cpp_lib_experimental_string_view
-    base_name_ = std::string(name.data(), name.size());
-#else
-    base_name_ = name;
-#endif
+  void set_base_name(std::string value) {
+    base_name_ = std::move(value);
+  }
+
+  void set_suffix_name(std::string value) {
+    suffix_name_ = std::move(value);
   }
 
   void set_max_file_length(unsigned int max_length) {
@@ -45,6 +45,7 @@ private:
   std::vector<std::string> log_dirs_;
 
   std::string base_name_;
+  std::string suffix_name_;
 
   mutable std::mutex mutex_;
 
@@ -89,6 +90,14 @@ struct FileSinkDirs {
   
 private:
   std::vector<std::string> dirs_;
+};
+
+struct FileSinkSuffixName {
+  std::string value;
+
+  void operator()(FileSink& sink) {
+    sink.set_suffix_name(value);
+  }
 };
 
 } // namespace cpplog

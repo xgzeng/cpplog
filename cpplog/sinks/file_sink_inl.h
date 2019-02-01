@@ -80,8 +80,8 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
     int pid = getpid();
 #endif
 
-    auto filename = fmt::format("{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
-        base_name_,
+    auto filename = fmt::format("{}{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
+        base_name_, suffix_name_,
         tm_time.tm_year + 1900, tm_time.tm_mon, tm_time.tm_mday,
         tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
         pid);
