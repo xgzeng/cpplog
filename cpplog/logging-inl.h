@@ -85,22 +85,22 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
 
 namespace detail {
 
-CPPLOG_INLINE void SetLogToFileHelper(FileSink&) {}
+CPPLOG_INLINE void ApplyFileSinkModifier(FileSink&) {}
 
 template<typename T1, typename... Ts>
-CPPLOG_INLINE void SetLogToFileHelper(FileSink& sink, T1&& modifier1, Ts&&... modifiers) {
+CPPLOG_INLINE void ApplyFileSinkModifier(FileSink& sink, T1&& modifier1, Ts&&... modifiers) {
   modifier1(sink);
-  SetLogToFileHelper(sink, modifiers...);
+  ApplyFileSinkModifier(sink, modifiers...);
 }
 
 } // namespace detail
 
 template<typename... T>
-CPPLOG_INLINE void SetLogToFile(T&&... modifiers) {
+CPPLOG_INLINE void LogToFile(T&&... modifiers) {
   auto psink = std::make_shared<FileSink>();
-  
-  detail::SetLogToFileHelper(*psink, modifiers...);
-  
+  detail::ApplyFileSinkModifier(*psink, modifiers...);
+  psink->CreateLogFile();
+
   LogDispatcher::instance().AddLogSink(psink);
 }
 

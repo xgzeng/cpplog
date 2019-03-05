@@ -34,6 +34,7 @@ public:
 
   const std::string& current_logfile_path() const;
 
+  bool CreateLogFile();
   void CloseLogFile();
 
   // LogSink interface

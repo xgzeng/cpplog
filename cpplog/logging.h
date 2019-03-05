@@ -85,7 +85,7 @@ template<typename T, typename... Args>
 CPPLOG_INLINE void AddLogSink(Args&&... args);
 
 template<typename... T>
-CPPLOG_INLINE void SetLogToFile(T&&... args);
+CPPLOG_INLINE void LogToFile(T&&... args);
 
 CPPLOG_INLINE void SetLogToConsole(bool enable);
 

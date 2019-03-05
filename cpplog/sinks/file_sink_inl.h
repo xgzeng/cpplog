@@ -55,76 +55,80 @@ CPPLOG_INLINE const std::string& FileSink::current_logfile_path() const {
   return current_logfile_path_;
 }
 
+CPPLOG_INLINE bool FileSink::CreateLogFile() {
+  if (file_) return true;
+
+  // generate log file name
+  time_t timestamp;
+  time(&timestamp);
+  struct ::tm tm_time;
+#ifdef _WIN32
+  localtime_s(&tm_time, &timestamp);
+#else
+  localtime_r(&timestamp, &tm_time);
+#endif
+
+#ifdef _WIN32
+  auto pid = GetCurrentProcessId();
+#else
+  int pid = getpid();
+#endif
+
+  auto filename = fmt::format("{}{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
+      base_name_, suffix_name_,
+      tm_time.tm_year + 1900, tm_time.tm_mon, tm_time.tm_mday,
+      tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
+      pid);
+
+  // try to create log file in various directory
+  bool create_file_success = false;
+  for (const auto& dir : log_dirs_) {
+#if _WIN32
+    auto file_path = dir + "\\" + filename;
+#else
+    auto file_path = dir + "/" + filename;
+#endif
+    if (CreateLogFile(file_path)) {
+      current_logfile_path_ = file_path;
+      create_file_success = true;
+      // create symlink
+#ifndef _WIN32
+      auto link_path = dir + "/" + base_name_ + ".log";
+      
+      struct stat symlink_state;
+      int status = lstat(link_path.c_str(), &symlink_state);
+      if (status == 0) {
+        unlink(link_path.c_str());
+      }
+
+      if (symlink(filename.c_str(), link_path.c_str()) != 0) {
+        perror("Could not create symlink file");
+      }
+#endif
+      break;
+    }
+  }
+
+  if (!create_file_success) {
+    perror("Could not create log file");
+    fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n", filename.c_str());
+    return false;
+  }
+
+  return true;
+}
+
 CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
   std::lock_guard<std::mutex> l(mutex_);
 
-  if (!file_) {
-    if (++rollover_attempt_ < kRolloverAttemptFrequency) {
-      return;
-    }
-    rollover_attempt_ = 0;
-
-    // generate log file name
-    time_t timestamp;
-    time(&timestamp);
-    struct ::tm tm_time;
-#ifdef _WIN32
-    localtime_s(&tm_time, &timestamp);
-#else
-    localtime_r(&timestamp, &tm_time);
-#endif
-
-#ifdef _WIN32
-    auto pid = GetCurrentProcessId();
-#else
-    int pid = getpid();
-#endif
-
-    auto filename = fmt::format("{}{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
-        base_name_, suffix_name_,
-        tm_time.tm_year + 1900, tm_time.tm_mon, tm_time.tm_mday,
-        tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
-        pid);
-
-    // try to create log file in various directory
-    bool create_file_success = false;
-    for (const auto& dir : log_dirs_) {
-#if _WIN32
-      auto file_path = dir + "\\" + filename;
-#else
-      auto file_path = dir + "/" + filename;
-#endif
-      if (CreateLogFile(file_path)) {
-        current_logfile_path_ = file_path;
-        create_file_success = true;
-        // create symlink
-#ifndef _WIN32
-        auto link_path = dir + "/" + base_name_ + ".log";
-        
-        struct stat symlink_state;
-        int status = lstat(link_path.c_str(), &symlink_state);
-        if (status == 0) {
-          unlink(link_path.c_str());
-        }
-
-        if (symlink(filename.c_str(), link_path.c_str()) != 0) {
-          perror("Could not create symlink file");
-        }
-#endif
-        break;
-      }
-    }
-
-    if (!create_file_success) {
-      perror("Could not create log file");
-      fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n", filename.c_str());
-      return;
-    }
-
-    // write a header
+  if (++rollover_attempt_ < kRolloverAttemptFrequency) {
+    return;
   }
+  rollover_attempt_ = 0;
 
-  assert(file_ != nullptr);
+  if (!CreateLogFile()) {
+    return;
+  }
 
   auto logstring = FormatAsText(r);
   logstring += "\n";
