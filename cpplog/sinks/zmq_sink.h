@@ -1,7 +1,7 @@
 #pragma once
 #include "cpplog/sink.h"
 #include "cpplog/formatter/json_formatter.h"
-#include <zmq.h>
+#include <zmq.hpp>
 
 namespace cpplog {
 
@@ -9,43 +9,21 @@ class ZeroMQSink : public LogSink {
 public:
   ZeroMQSink(const char* endpoint);
 
-  ~ZeroMQSink();
-
   void Submit(const LogRecord&) override;
 
 private:
-  void* zmq_ctx_ = nullptr;
-  void* zmq_pub_sock_ = nullptr;
+  zmq::context_t zmq_ctx_;
+  zmq::socket_t zmq_pub_sock_;
 };
 
-CPPLOG_INLINE ZeroMQSink::ZeroMQSink(const char* endpoint) {
-  zmq_ctx_ = zmq_ctx_new();
-  assert(zmq_ctx_);
-  zmq_pub_sock_ = zmq_socket(zmq_ctx_, ZMQ_PUB);
-  assert(zmq_pub_sock_);
-
-  if (zmq_bind(zmq_pub_sock_, endpoint) != 0) {
-    // release resource
-    zmq_close(zmq_pub_sock_);
-    zmq_ctx_term(zmq_ctx_);
-
-    throw std::system_error(errno, std::system_category());
-  }
-}
-
-CPPLOG_INLINE ZeroMQSink::~ZeroMQSink() {
-  int ret = zmq_close(zmq_pub_sock_);
-  assert(ret == 0);
-  ret = zmq_ctx_term(zmq_ctx_);
-  assert(ret == 0);
+CPPLOG_INLINE ZeroMQSink::ZeroMQSink(const char* endpoint)
+: zmq_pub_sock_(zmq_ctx_, ZMQ_PUB) {
+  zmq_pub_sock_.bind(endpoint);
 }
 
 CPPLOG_INLINE void ZeroMQSink::Submit(const LogRecord& record) {
-  auto s = FormatAsJSON(record);
-  int ret = zmq_send(zmq_pub_sock_, s.data(), s.size(), 0);
-  if (ret != s.size()) {
-    printf("zmq_send failed\n");
-  }
+  std::string s = FormatAsJSON(record);
+  zmq_pub_sock_.send(s.data(), s.size());
 }
 
 } // namespace cpplog
