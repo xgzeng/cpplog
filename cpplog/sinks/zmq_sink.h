@@ -17,7 +17,7 @@ private:
 };
 
 CPPLOG_INLINE ZeroMQSink::ZeroMQSink(const char* endpoint)
-: zmq_pub_sock_(zmq_ctx_, ZMQ_PUB) {
+: zmq_pub_sock_(zmq_ctx_, zmq::socket_type::pub) {
   zmq_pub_sock_.bind(endpoint);
 }
 

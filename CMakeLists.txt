@@ -43,4 +43,5 @@ if (CPPLOG_BUILD_TESTS)
   add_subdirectory(test)
 endif(CPPLOG_BUILD_TESTS)
 
-#add_subdirectory(cpplog/detail)
+# Tools
+add_subdirectory(tools)
