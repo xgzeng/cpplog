@@ -29,9 +29,10 @@ public:
   bool HasLogSink(LogSink* sink);
 
   template<typename T, typename... ConstructorArgs>
-  void AddSink(ConstructorArgs... args) {
+  std::shared_ptr<T> AddSink(ConstructorArgs... args) {
     auto p = std::make_shared<T>(std::forward<ConstructorArgs>(args)...);
     sinks_.push_back(p);
+    return p;
   }
   
   void AddLogSink(LogSinkPtr sink);
@@ -82,7 +83,7 @@ private:
 CPPLOG_INLINE void AddLogSink(LogSink*);
 
 template<typename T, typename... Args>
-CPPLOG_INLINE void AddLogSink(Args&&... args);
+CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args);
 
 template<typename... T>
 CPPLOG_INLINE void LogToFile(T&&... args);

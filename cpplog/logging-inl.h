@@ -63,8 +63,8 @@ CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
 };
 
 template<typename T, typename... Args>
-CPPLOG_INLINE void AddLogSink(Args&&... args) {
-  LogDispatcher::instance().AddSink<T>(std::forward<Args>(args)...);
+CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args) {
+  return LogDispatcher::instance().AddSink<T>(std::forward<Args>(args)...);
 }
 
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
