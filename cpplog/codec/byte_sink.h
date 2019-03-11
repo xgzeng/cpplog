@@ -11,4 +11,4 @@ public:
   virtual void Append(const void* bytes, std::size_t n) = 0;
 };
 
-} // cpplog::detail
+} // cpplog::codec

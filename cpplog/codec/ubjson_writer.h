@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include "cpplog/detail/byte_sink.h"
+#include "cpplog/codec/byte_sink.h"
 
 #include <limits> // numeric_limits
 #include <cassert>
@@ -33,7 +33,7 @@ inline void CHECK_TYPE_SIZE() {
 #error "compiler not supported yet"
 #endif
 
-namespace cpplog { namespace detail {
+namespace cpplog { namespace codec {
 
 /// integer cast safeness template
 template<typename FROM, typename TO>
@@ -74,11 +74,11 @@ struct is_big_int {
 //          (sizeof(T) == sizeof(int64_t) && std::numeric_limits<T>::is_signed)));
 // };
 
-} // namespace detail
+} // namespace codec
 
 class UBJsonWriter {
-  static_assert(detail::is_small_int<int>::value, "");
-  static_assert(!detail::is_small_int<unsigned int>::value, "");
+  static_assert(codec::is_small_int<int>::value, "");
+  static_assert(!codec::is_small_int<unsigned int>::value, "");
 
 public:
   UBJsonWriter(ByteSink& bs)
@@ -172,8 +172,8 @@ public:
 
   template<typename T>
   UBJsonWriter& WriteValue(T value,
-      typename std::enable_if<detail::is_small_int<T>::value, void*>::type = 0) {
-    static_assert(detail::is_safe_integer_cast<T, int32_t>::value, "");
+      typename std::enable_if<codec::is_small_int<T>::value, void*>::type = 0) {
+    static_assert(codec::is_safe_integer_cast<T, int32_t>::value, "");
 
     if (value >= 0) {
       if (value <= std::numeric_limits<int8_t>::max()) {
@@ -198,8 +198,8 @@ public:
 
   template<typename T>
   UBJsonWriter& WriteValue(T value,
-      typename std::enable_if<detail::is_big_int<T>::value, void*>::type = 0) {
-    static_assert(detail::is_safe_integer_cast<T, int64_t>::value, "");
+      typename std::enable_if<codec::is_big_int<T>::value, void*>::type = 0) {
+    static_assert(codec::is_safe_integer_cast<T, int64_t>::value, "");
 
     if (value <= std::numeric_limits<int32_t>::max()) {
       return WriteValue(static_cast<int32_t>(value));
@@ -267,4 +267,4 @@ CPPLOG_INLINE UBJsonWriter& UBJsonWriter::WriteString(string_view value) {
   return *this;
 }
 
-} // namespace cpplog::detail
+} // namespace cpplog::codec

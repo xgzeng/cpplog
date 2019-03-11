@@ -1,8 +1,8 @@
 #pragma once
 
 #include "cpplog/config.h"
-#include "cpplog/detail/sstream_byte_sink.h"
-#include "cpplog/detail/ubjson_writer.h"
+#include "cpplog/codec/sstream_byte_sink.h"
+#include "cpplog/codec/ubjson_writer.h"
 
 namespace cpplog {
 

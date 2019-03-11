@@ -1,5 +1,5 @@
-#include "cpplog/detail/ubjson_writer.h"
-#include "cpplog/detail/sstream_byte_sink.h"
+#include "cpplog/codec/ubjson_writer.h"
+#include "cpplog/codec/sstream_byte_sink.h"
 
 #include <nlohmann/json.hpp>
 
@@ -227,7 +227,7 @@ TEST_CASE("UBJsonWriter Result can be parsed by nlohmann::json") {
 }
 
 TEST_CASE("test is_safe_integer_cast<> template") {
-  using namespace cpplog::detail;
+  using namespace cpplog::codec;
   
   // unsigned to unsigned
   static_assert(is_safe_integer_cast<uint8_t, uint8_t>::value, "");

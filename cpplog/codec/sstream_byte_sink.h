@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cpplog/detail/byte_sink.h"
+#include "cpplog/codec/byte_sink.h"
 #include <sstream>
 
 namespace cpplog {
@@ -11,4 +11,4 @@ struct StringStreamByteSink : std::ostringstream, ByteSink {
   }
 };
 
-} // namespace cpplog::detail
+} // namespace cpplog::codec
