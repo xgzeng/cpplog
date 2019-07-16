@@ -40,7 +40,7 @@ CPPLOG_INLINE std::string FormatAsText(const LogRecord& r) {
 
   auto& file_info = r.src_location();
 
-  return fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2}.{:0>4} {}:{}:{}] {}",
+  return fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2}.{:0>3} {}:{}:{}] {}",
       level_letter, 1 + tm_local.tm_mon, tm_local.tm_mday,
       tm_local.tm_hour, tm_local.tm_min, tm_local.tm_sec,
       r.timestamp().tv_nsec / 1000000,
