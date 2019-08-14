@@ -58,6 +58,7 @@ private:
 
   std::atomic<unsigned int> max_file_length_{ 20 * 1024 * 1024 }; // 20MB
 
+  time_t current_logfile_timestamp_ = 0; 
   std::string current_logfile_path_;
 
   std::size_t file_length_{ 0 };

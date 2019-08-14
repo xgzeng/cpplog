@@ -63,12 +63,15 @@ TEST_CASE("FileSink LogFile Rotation") {
   s.Submit(LogRecord());
   auto logfile_path_1 = s.current_logfile_path();
 
-  // sleep 1 second to ensure log file name will be different
+  // sleep 1 second to ensure log file will rollover
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  for (int i = 0; i < 100; ++i) {
-    s.Submit(LogRecord());
+  for (int i = 0; i < 2000; ++i) {
+    LogRecord r;
+    r.set_message(fmt::format("{}", i));
+    s.Submit(r);
   }
+
   auto logfile_path_2 = s.current_logfile_path();
   s.CloseLogFile();
 

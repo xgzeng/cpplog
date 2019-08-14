@@ -91,6 +91,7 @@ CPPLOG_INLINE bool FileSink::CreateLogFile() {
     if (CreateLogFile(file_path)) {
       current_logfile_path_ = file_path;
       create_file_success = true;
+      current_logfile_timestamp_ = timestamp;
       // create symlink
 #ifndef _WIN32
       auto link_path = dir + "/" + base_name_ + ".log";
@@ -121,13 +122,15 @@ CPPLOG_INLINE bool FileSink::CreateLogFile() {
 CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
   std::lock_guard<std::mutex> l(mutex_);
 
-  if (++rollover_attempt_ < kRolloverAttemptFrequency) {
-    return;
-  }
-  rollover_attempt_ = 0;
+  if (file_ == nullptr) {
+    if (++rollover_attempt_ < kRolloverAttemptFrequency) {
+      return;
+    }
+    rollover_attempt_ = 0;
 
-  if (!CreateLogFile()) {
-    return;
+    if (!CreateLogFile()) {
+      return;
+    }
   }
 
   auto logstring = FormatAsText(r);
@@ -148,7 +151,8 @@ CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
     FlushUnlocked();
   }
 
-  if (file_length_ > max_file_length_) {
+  if (file_length_ > max_file_length_
+      && time(nullptr) > current_logfile_timestamp_) {
     CloseFileUnlocked();
   }
 }
