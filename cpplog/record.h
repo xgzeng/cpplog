@@ -28,8 +28,6 @@ public:
 
   ~LogRecord() = default;
 
-  LogRecord& operator=(const LogRecord&) = default;
-
   const std::string& message() const {
     return message_;
   };
@@ -68,7 +66,7 @@ public:
 
   template<typename T>
   void Attach(string_view name, T&& value) {
-    attachment_.Attach(name, std::forward<T>(value));
+    // attachment_.Attach(name, std::forward<T>(value));
   }
 
 private:
@@ -80,7 +78,7 @@ private:
 
   source_location src_location_;
 
-  Attachment attachment_;
+  // Attachment attachment_;
 };
 
 CPPLOG_INLINE LogRecord::LogRecord(LogLevel level,

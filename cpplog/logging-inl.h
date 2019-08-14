@@ -68,9 +68,13 @@ CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args) {
 }
 
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
-  if (!LogDispatcher::instance().HasLogSink(sink)) {
-    LogDispatcher::instance().AddLogSink(sink);
-  }
+  assert(!LogDispatcher::instance().HasLogSink(sink));
+  LogDispatcher::instance().AddLogSink(sink);
+}
+
+CPPLOG_INLINE void RemoveLogSink(LogSink* sink) {
+  assert(LogDispatcher::instance().HasLogSink(sink));
+  LogDispatcher::instance().RemoveLogSink(sink);
 }
 
 CPPLOG_INLINE void SetLogToConsole(bool enable) {

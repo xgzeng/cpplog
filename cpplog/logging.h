@@ -5,6 +5,7 @@
 #include "cpplog/record.h"
 #include <time.h>
 #include <sstream>
+#include <vector>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
@@ -81,6 +82,7 @@ private:
 
 /// global functions
 CPPLOG_INLINE void AddLogSink(LogSink*);
+CPPLOG_INLINE void RemoveLogSink(LogSink* sink);
 
 template<typename T, typename... Args>
 CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args);
