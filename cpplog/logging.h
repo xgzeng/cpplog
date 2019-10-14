@@ -1,98 +1,33 @@
 #pragma once
 
-#include "cpplog/config.h"
-#include "cpplog/sink.h"
-#include "cpplog/record.h"
-#include <time.h>
-#include <sstream>
-#include <vector>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 
-namespace cpplog {
+constexpr auto LVL2_TRACE = spdlog::level::level_enum::trace;
+constexpr auto LVL2_DEBUG = spdlog::level::level_enum::debug;
+constexpr auto LVL2_INFO  = spdlog::level::level_enum::info;
+constexpr auto LVL2_WARNING  = spdlog::level::level_enum::warn;
+constexpr auto LVL2_ERROR  = spdlog::level::level_enum::err;
+constexpr auto LVL2_FATAL = spdlog::level::level_enum::critical;
 
-typedef std::shared_ptr<LogSink> LogSinkPtr;
+#define LOG_TO_IMPL(logger, ...) SPDLOG_LOGGER_CALL(logger, __VA_ARGS__)
 
-class LogDispatcher : public LogSink {
-public:
-  static LogDispatcher& instance();
+#define LOG_TO(sink, level, fmt, ...) \
+    LOG_TO_IMPL(sink, LVL2_##level, fmt, ##__VA_ARGS__)
 
-  bool is_level_enabled(LogLevel level) const override;
+#define LOG(level, fmt, ...) \
+  LOG_TO_IMPL(spdlog::default_logger_raw(), LVL2_##level, fmt, ##__VA_ARGS__)
 
-  void EnableLevelAbove(LogLevel level);
+// #define LOG_TO_IF(sink, level, condition,  fmt, ...) \
+//   if (condition) LOG_TO_IMPL(sink, LVL_##level, fmt, ##__VA_ARGS__)
 
-  void Submit(const LogRecord& record) override;
+#define LOG_IF(level, condition, fmt, ...) \
+  if (condition) LOG_TO_IMPL(spdlog::default_logger_raw(), LVL2_##level, fmt, ##__VA_ARGS__)
 
-  void AddLogSink(LogSink* sink);
-
-  void RemoveLogSink(LogSink* sink);
-
-  bool HasLogSink(LogSink* sink);
-
-  template<typename T, typename... ConstructorArgs>
-  std::shared_ptr<T> AddSink(ConstructorArgs... args) {
-    auto p = std::make_shared<T>(std::forward<ConstructorArgs>(args)...);
-    sinks_.push_back(p);
-    return p;
-  }
-  
-  void AddLogSink(LogSinkPtr sink);
-
-private:
-  LogLevel level_limit_ = LogLevel::Information;
-  std::vector<LogSinkPtr> sinks_;
-};
-
-class LogCapture {
-public:
-  LogCapture(LogLevel level, const source_location&);
-
-  LogCapture(LogSink& sink, LogLevel level, const source_location&);
-
-  ~LogCapture();
-
-  template<typename T>
-  LogCapture& operator << (T&& value) {
-    message_stream_ << std::forward<T>(value);
-    return *this;
-  }
-
-  template<typename FMT_STR, typename... T>
-  LogCapture& message(FMT_STR&& fmt_str, T&&... args) {
-    try {
-      fmt::print(message_stream_, std::forward<FMT_STR>(fmt_str), std::forward<T>(args)...);
-    } catch (std::exception& e) {
-      message_stream_ << "format message '" << fmt_str << "' failed, " << e.what();
-    }
-    return *this;
-  }
-
-  // capture log record properties
-  template<typename T>
-  LogCapture& operator()(string_view name, T&& value) {
-    record_.Attach(name, std::forward<T>(value));
-    return *this;
-  }
-
-private:
-  LogRecord record_;
-  LogSink& sink_;
-  std::ostringstream message_stream_;
-};
-
-/// global functions
-CPPLOG_INLINE void AddLogSink(LogSink*);
-CPPLOG_INLINE void RemoveLogSink(LogSink* sink);
-
-template<typename T, typename... Args>
-CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args);
-
-template<typename... T>
-CPPLOG_INLINE void LogToFile(T&&... args);
-
-CPPLOG_INLINE void SetLogToConsole(bool enable);
-
-} // namespace log
-
-#include "cpplog/logging-inl.h"
-#include "cpplog/macros.h"
+#define LOG_EVERY_N(level, n, fmt, ...)                          \
+    static int LOG_OCCURRENCES = 0, LOG_OCCURRENCES_MOD_N = 0;   \
+    ++LOG_OCCURRENCES;                                           \
+    if (++LOG_OCCURRENCES_MOD_N > n) LOG_OCCURRENCES_MOD_N -= n; \
+    if (LOG_OCCURRENCES_MOD_N == 1)                              \
+        LOG_TO_IMPL(spdlog::default_logger_raw(), LVL2_##level, fmt, ##__VA_ARGS__)
