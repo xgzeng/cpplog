@@ -8,6 +8,7 @@ constexpr auto LVL2_TRACE = spdlog::level::level_enum::trace;
 constexpr auto LVL2_DEBUG = spdlog::level::level_enum::debug;
 constexpr auto LVL2_INFO  = spdlog::level::level_enum::info;
 constexpr auto LVL2_WARNING  = spdlog::level::level_enum::warn;
+constexpr auto LVL2_WARN  = spdlog::level::level_enum::warn;
 constexpr auto LVL2_ERROR  = spdlog::level::level_enum::err;
 constexpr auto LVL2_FATAL = spdlog::level::level_enum::critical;
 
