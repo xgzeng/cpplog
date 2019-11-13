@@ -1,8 +1,14 @@
 #include "cpplog/logging.h"
 #include "cpplog/sinks/file_sink.h"
+#include <thread>
+
+#ifdef _WIN32
+#undef max // max macro conflict with catch
+#endif
 #include "catch.hpp"
 
 using cpplog::FileSink;
+using cpplog::LogRecord;
 
 TEST_CASE("FileSink Constructor") {
   FileSink s1("test");
@@ -10,7 +16,7 @@ TEST_CASE("FileSink Constructor") {
 }
 
 static bool FileExists(const std::string& path) {
-#ifdef WIN32
+#ifdef _WIN32
   FILE* fp = nullptr;
   if (fopen_s(&fp, path.c_str(), "r") == 0) {
     fclose(fp);
@@ -33,9 +39,7 @@ TEST_CASE("FileSink CreateLogFile") {
   FileSink s1("test");
   REQUIRE(s1.current_logfile_path().empty());
 
-  cpplog::LogRecord record;
-  record.message("test log message");
-  s1.SubmitRecord(record);
+  s1.Submit(LogRecord());
 
   auto logfile_path = s1.current_logfile_path();
   REQUIRE(!logfile_path.empty());
@@ -56,19 +60,18 @@ TEST_CASE("FileSink LogFile Rotation") {
   FileSink s("test");
   s.set_max_file_length(2000); // 2K
 
-  cpplog::LogRecord record;
-  record.message("01234567890123456789"); // 20 bytes at least
-  s.SubmitRecord(record);
+  s.Submit(LogRecord());
   auto logfile_path_1 = s.current_logfile_path();
 
-  // sleep 1 second to ensure log file name will be different
+  // sleep 1 second to ensure log file will rollover
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  for (int i = 0; i < 100; ++i) {
-    cpplog::LogRecord record;
-    record.message("01234567890123456789"); // 20 bytes at least
-    s.SubmitRecord(record);
+  for (int i = 0; i < 2000; ++i) {
+    LogRecord r;
+    r.set_message(fmt::format("{}", i));
+    s.Submit(r);
   }
+
   auto logfile_path_2 = s.current_logfile_path();
   s.CloseLogFile();
 

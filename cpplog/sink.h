@@ -7,15 +7,14 @@ namespace cpplog {
 
 class LogSink {
 public:
-  virtual bool is_level_enabled(LogLevel level) const {
+  virtual bool is_level_enabled(LogLevel) const {
     return true;
   }
 
-  virtual void SubmitRecord(const LogRecord&) = 0;
+  virtual void Submit(const LogRecord&) = 0;
 
 protected:
   ~LogSink() = default;
 };
 
 }  // namespace cpplog
-

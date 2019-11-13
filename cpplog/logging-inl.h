@@ -7,6 +7,7 @@
 #endif
 
 #include "cpplog/sinks/console_sink.h"
+#include "cpplog/sinks/file_sink.h"
 
 namespace cpplog {
 
@@ -18,15 +19,19 @@ CPPLOG_INLINE void LogDispatcher::EnableLevelAbove(LogLevel level) {
   level_limit_ = level;
 }
 
-CPPLOG_INLINE void LogDispatcher::SubmitRecord(const LogRecord& r) {
+CPPLOG_INLINE void LogDispatcher::Submit(const LogRecord& r) {
   for (auto s : sinks_) {
-    s->SubmitRecord(r);
+    s->Submit(r);
   }
 }
 
 CPPLOG_INLINE void LogDispatcher::AddLogSink(LogSink* sink) {
   LogSinkPtr p_sink {sink, [](LogSink*){}};
-  sinks_.push_back(p_sink);
+  AddLogSink(p_sink);
+}
+
+CPPLOG_INLINE void LogDispatcher::AddLogSink(LogSinkPtr sink) {
+  sinks_.push_back(sink);
 }
 
 CPPLOG_INLINE void LogDispatcher::RemoveLogSink(LogSink* sink) {
@@ -57,10 +62,19 @@ CPPLOG_INLINE LogDispatcher& LogDispatcher::instance() {
   return global_instance;
 };
 
+template<typename T, typename... Args>
+CPPLOG_INLINE std::shared_ptr<T> AddLogSink(Args&&... args) {
+  return LogDispatcher::instance().AddSink<T>(std::forward<Args>(args)...);
+}
+
 CPPLOG_INLINE void AddLogSink(LogSink* sink) {
-  if (!LogDispatcher::instance().HasLogSink(sink)) {
-    LogDispatcher::instance().AddLogSink(sink);
-  }
+  assert(!LogDispatcher::instance().HasLogSink(sink));
+  LogDispatcher::instance().AddLogSink(sink);
+}
+
+CPPLOG_INLINE void RemoveLogSink(LogSink* sink) {
+  assert(LogDispatcher::instance().HasLogSink(sink));
+  LogDispatcher::instance().RemoveLogSink(sink);
 }
 
 CPPLOG_INLINE void SetLogToConsole(bool enable) {
@@ -73,20 +87,41 @@ CPPLOG_INLINE void SetLogToConsole(bool enable) {
   }
 }
 
+namespace detail {
+
+CPPLOG_INLINE void ApplyFileSinkModifier(FileSink&) {}
+
+template<typename T1, typename... Ts>
+CPPLOG_INLINE void ApplyFileSinkModifier(FileSink& sink, T1&& modifier1, Ts&&... modifiers) {
+  modifier1(sink);
+  ApplyFileSinkModifier(sink, modifiers...);
+}
+
+} // namespace detail
+
+template<typename... T>
+CPPLOG_INLINE void LogToFile(T&&... modifiers) {
+  auto psink = std::make_shared<FileSink>();
+  detail::ApplyFileSinkModifier(*psink, modifiers...);
+  psink->CreateLogFile();
+
+  LogDispatcher::instance().AddLogSink(psink);
+}
+
 // LogCapturer
-CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const SourceFileInfo& src_file_info)
-: record_(level, src_file_info), sink_(LogDispatcher::instance()) {
+CPPLOG_INLINE LogCapture::LogCapture(LogLevel level, const source_location& src_location)
+: record_(level, src_location), sink_(LogDispatcher::instance()) {
 }
 
 CPPLOG_INLINE LogCapture::LogCapture(LogSink& s,
                                      LogLevel level,
-                                     const SourceFileInfo& src_file_info)
-: record_(level, src_file_info), sink_(s) {
+                                     const source_location& src_location)
+: record_(level, src_location), sink_(s) {
 }
 
 CPPLOG_INLINE LogCapture::~LogCapture() {
-  record_.message(message_stream_.str());
-  sink_.SubmitRecord(record_);
+  record_.set_message(message_stream_.str());
+  sink_.Submit(record_);
 }
 
 } // namespace cpplog

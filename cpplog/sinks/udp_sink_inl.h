@@ -1,6 +1,8 @@
 #pragma once
 
-#ifdef WIN32
+#include "cpplog/formatter/json_formatter.h"
+
+#ifdef _WIN32
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #else
@@ -9,9 +11,7 @@
 #include <arpa/inet.h>  // inet_pton
 #endif
 
-#include "fmt/time.h"
-
-#ifdef WIN32
+#ifdef _WIN32
 #define THROW_SOCKET_SYSTEM_ERROR() \
   throw std::system_error(WSAGetLastError(), std::generic_category())
 #else
@@ -33,11 +33,15 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
 
   auto colon_pos = addr.find_first_of(':');
   if (colon_pos == string_view::npos) {
-    ip = addr;
+    ip = std::string{addr};
     port = DEFAULT_PORT;
   } else {
-    ip = addr.substr(0, colon_pos);
-    port = std::stoi(addr.substr(colon_pos + 1));
+    ip = std::string{addr.substr(0, colon_pos)};
+    port = std::stoi(std::string{addr.substr(colon_pos + 1)});
+  }
+  
+  if (ip.empty()) {
+    ip = "127.0.0.1";
   }
 
   // invalid port
@@ -50,7 +54,7 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons(port);
 
-#ifdef WIN32
+#ifdef _WIN32
   if (!InetPton(AF_INET, ip.c_str(), &saddr.sin_addr.s_addr)) {
     THROW_SOCKET_SYSTEM_ERROR();
   }
@@ -67,26 +71,9 @@ CPPLOG_INLINE UdpSink::UdpSink(string_view addr) {
   sock_ = std::move(sock);
 }
 
-CPPLOG_INLINE std::string to_iso8601(timespec ts) {
-  struct tm result;
-#ifdef WIN32
-  gmtime_s(&result, &ts.tv_sec);
-#else
-  gmtime_r(&ts.tv_sec, &result);
-#endif
-  return fmt::format("{:%FT%T}.{:03}Z", result, ts.tv_nsec/1000/1000); //  / (1000 * 1000)
-}
-
-CPPLOG_INLINE void UdpSink::SubmitRecord(const LogRecord& record) {
-  json j = record.fields();
-  j["@timestamp"] = to_iso8601(record.timestamp());
-  j["@version"] = "1";
-  j["level"] = record.level();
-  j["message"] = record.message();
-  j["src_file_info"] = record.src_file_info();
-  std::string s = j.dump();
+CPPLOG_INLINE void UdpSink::Submit(const LogRecord& record) {
+  auto s = FormatAsJSON(record);
   send(sock_.get(), s.data(), s.size(), 0);
 }
 
 } // namespace cpplog
-

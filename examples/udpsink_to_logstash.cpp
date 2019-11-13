@@ -6,7 +6,7 @@
 using namespace cpplog;
 
 int main(int argc, char* argv[]) {
-#ifdef WIN32
+#ifdef _WIN32
   WSADATA wsaData = { 0 };
   if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
     printf("WSAStartup failed\n");

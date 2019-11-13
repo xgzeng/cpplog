@@ -1,13 +1,13 @@
-#include <thread>
-#ifndef WIN32
+#ifndef _WIN32
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 namespace cpplog {
 
 CPPLOG_INLINE std::string GetExecutableBaseName() {
-#if WIN32
+#if _WIN32
   const char PATH_SLASH_CHAR = '\\';
   TCHAR file_path[MAX_PATH + 1];
   DWORD file_name_len = GetModuleFileName(NULL, file_path, MAX_PATH + 1);
@@ -37,17 +37,17 @@ CPPLOG_INLINE std::string GetExecutableBaseName() {
   return path.substr(begin_pos, count);
 }
 
+CPPLOG_INLINE FileSink::FileSink()
+: FileSink(string_view{}) {
+}
+
 CPPLOG_INLINE FileSink::FileSink(string_view base_name)
 : base_name_(base_name),
   file_{nullptr, fclose} {
-  log_dir_ = { "." };
+  log_dirs_ = { "." };
   if (base_name_.empty()) {
     base_name_ = GetExecutableBaseName();
   }
-}
-
-CPPLOG_INLINE FileSink::FileSink()
-: FileSink(string_view{}) {
 }
 
 CPPLOG_INLINE const std::string& FileSink::current_logfile_path() const {
@@ -55,62 +55,83 @@ CPPLOG_INLINE const std::string& FileSink::current_logfile_path() const {
   return current_logfile_path_;
 }
 
-CPPLOG_INLINE void FileSink::SubmitRecord(const LogRecord& r) {
+CPPLOG_INLINE bool FileSink::CreateLogFile() {
+  if (file_) return true;
+
+  // generate log file name
+  time_t timestamp;
+  time(&timestamp);
+  struct ::tm tm_time;
+#ifdef _WIN32
+  localtime_s(&tm_time, &timestamp);
+#else
+  localtime_r(&timestamp, &tm_time);
+#endif
+
+#ifdef _WIN32
+  auto pid = GetCurrentProcessId();
+#else
+  int pid = getpid();
+#endif
+
+  auto filename = fmt::format("{}{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
+      base_name_, suffix_name_,
+      tm_time.tm_year + 1900, tm_time.tm_mon, tm_time.tm_mday,
+      tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
+      pid);
+
+  // try to create log file in various directory
+  bool create_file_success = false;
+  for (const auto& dir : log_dirs_) {
+#if _WIN32
+    auto file_path = dir + "\\" + filename;
+#else
+    auto file_path = dir + "/" + filename;
+#endif
+    if (CreateLogFile(file_path)) {
+      current_logfile_path_ = file_path;
+      create_file_success = true;
+      current_logfile_timestamp_ = timestamp;
+      // create symlink
+#ifndef _WIN32
+      auto link_path = dir + "/" + base_name_ + ".log";
+      
+      struct stat symlink_state;
+      int status = lstat(link_path.c_str(), &symlink_state);
+      if (status == 0) {
+        unlink(link_path.c_str());
+      }
+
+      if (symlink(filename.c_str(), link_path.c_str()) != 0) {
+        perror("Could not create symlink file");
+      }
+#endif
+      break;
+    }
+  }
+
+  if (!create_file_success) {
+    perror("Could not create log file");
+    fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n", filename.c_str());
+    return false;
+  }
+
+  return true;
+}
+
+CPPLOG_INLINE void FileSink::Submit(const LogRecord& r) {
   std::lock_guard<std::mutex> l(mutex_);
 
-  if (!file_) {
+  if (file_ == nullptr) {
     if (++rollover_attempt_ < kRolloverAttemptFrequency) {
       return;
     }
     rollover_attempt_ = 0;
 
-    // generate log file name
-    time_t timestamp;
-    time(&timestamp);
-    struct ::tm tm_time;
-#ifdef WIN32
-    localtime_s(&tm_time, &timestamp);
-#else
-    localtime_r(&timestamp, &tm_time);
-#endif
-
-#ifdef WIN32
-    auto pid = GetCurrentProcessId();
-#else
-    int pid = getpid();
-#endif
-
-    auto filename = fmt::format("{}.{}{:0>2}{:0>2}-{:0>2}{:0>2}{:0>2}.{}.log",
-        base_name_,
-        tm_time.tm_year + 1900, tm_time.tm_mon, tm_time.tm_mday,
-        tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
-        pid);
-
-    // try to create log file in various directory
-    bool create_file_success = false;
-    for (const auto& dir : log_dir_) {
-#if WIN32
-      auto file_path = dir + "\\" + filename;
-#else
-      auto file_path = dir + "/" + filename;
-#endif
-      if (CreateLogFile(file_path)) {
-        current_logfile_path_ = file_path;
-        create_file_success = true;
-        break;
-      }
-    }
-
-    if (!create_file_success) {
-      perror("Could not create log file");
-      fprintf(stderr, "COULD NOT CREATE LOGFILE '%s'!\n", filename.c_str());
+    if (!CreateLogFile()) {
       return;
     }
-
-    // write a header
   }
-
-  assert(file_ != nullptr);
 
   auto logstring = FormatAsText(r);
   logstring += "\n";
@@ -130,13 +151,14 @@ CPPLOG_INLINE void FileSink::SubmitRecord(const LogRecord& r) {
     FlushUnlocked();
   }
 
-  if (file_length_ > max_file_length_) {
+  if (file_length_ > max_file_length_
+      && time(nullptr) > current_logfile_timestamp_) {
     CloseFileUnlocked();
   }
 }
 
 CPPLOG_INLINE bool FileSink::CreateLogFile(const std::string& file_name) {
-#if WIN32
+#if defined(_WIN32)
   FILE* f = nullptr;
   if (fopen_s(&f, file_name.c_str(), "a+") != 0) {
     return false;

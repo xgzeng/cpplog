@@ -7,7 +7,7 @@ namespace cpplog {
 
 class GLogSink : public LogSink {
 public:
-  void SubmitRecord(const LogRecord& r) override {
+  void Submit(const LogRecord& r) override {
     google::LogSeverity severity = google::GLOG_INFO;
     switch (r.level()) {
     case LogLevel::Trace:
@@ -19,11 +19,10 @@ public:
     default:
       break;
     }
-    auto& src_file = r.src_file_info();
-    google::LogMessage(src_file.file_name(), src_file.line(), severity, 0,
+    auto& src_location = r.src_location();
+    google::LogMessage(src_location.file_name(), src_location.line(), severity, 0,
                        &google::LogMessage::SendToLog).stream() << r.message();
   }
 };
 
 }
-
